@@ -1,34 +1,19 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { supabaseClient } from '../../../utils/supabase';
+import { NextResponse } from 'next/server';
+import { createFile } from '@/lib/github';
 
-const chatRoute = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { method } = req;
+export async function POST(req: Request) {
+  try {
+    const { prompt } = await req.json();
 
-  switch (method) {
-    case 'GET':
-      try {
-        const { data, error } = await supabaseClient.from('chat_messages').select('*');
-        if (error) {
-          return res.status(500).json({ message: 'Failed to fetch chat messages' });
-        }
-        return res.status(200).json(data);
-      } catch (error) {
-        return res.status(500).json({ message: 'Failed to fetch chat messages' });
-      }
-    case 'POST':
-      try {
-        const { message, userId } = req.body;
-        const { data, error } = await supabaseClient.from('chat_messages').insert([{ message, user_id: userId }]);
-        if (error) {
-          return res.status(500).json({ message: 'Failed to send chat message' });
-        }
-        return res.status(201).json(data);
-      } catch (error) {
-        return res.status(500).json({ message: 'Failed to send chat message' });
-      }
-    default:
-      return res.status(405).json({ message: 'Method not allowed' });
-  }
-};
+    const strictInstruction = `
+IDENTITY: You are Nehira, the Universal Architect (Jarvis Level).
+CAPABILITY: Full Stack Engineering (Next.js 14, Python, SQL).
 
-export default chatRoute;
+RULES:
+1. UI: Use 'Zinc-950' bg, 'Emerald-500' accents. NO EXTERNAL ICONS (Draw SVG paths).
+2. BACKEND: Write secure API routes.
+3. BEHAVIOR: Output raw code only.
+
+OUTPUT FORMAT:
+$$FILE: path/to/file.tsx$$
+(Code)
