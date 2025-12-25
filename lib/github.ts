@@ -1,18 +1,16 @@
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-// ⚠️ DHYAN DE: Ye naam EXACT wahi hona chahiye jo GitHub URL mein hai
-// Agar URL hai: github.com/tDatta5315/kryv-core-
-// Toh ye hona chahiye: "kryv-core-"
-const REPO_OWNER = "tDatta5315"; 
+
+// ✅ CORRECTED USERNAME
+const REPO_OWNER = "RajatDatta5315"; 
 const REPO_NAME = "kryv-core-"; 
 
-export async function createFile(path: string, content: string, message: string = "Nehira Auto-Update") {
+export async function createFile(path: string, content: string, message: string = "Nehira Auto-Build") {
   if (!GITHUB_TOKEN) {
     throw new Error("MISSING_TOKEN: Vercel Env Variable GITHUB_TOKEN nahi mila.");
   }
 
   console.log(`Attempting to create file: ${path} in ${REPO_OWNER}/${REPO_NAME}`);
 
-  // 1. Check if file exists (SHA lene ke liye)
   let sha = null;
   try {
     const checkRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
@@ -28,10 +26,9 @@ export async function createFile(path: string, content: string, message: string 
       sha = data.sha;
     }
   } catch (e) {
-    // File nahi mili, koi baat nahi, nayi banayenge
+    // File doesn't exist, ignore
   }
 
-  // 2. Create or Update
   const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
     method: "PUT",
     headers: {
@@ -46,7 +43,6 @@ export async function createFile(path: string, content: string, message: string 
     }),
   });
 
-  // 🚨 ASLI FIX: Agar GitHub ne mana kiya, toh error throw karo
   if (!res.ok) {
     const errorText = await res.text();
     console.error("GitHub Error:", errorText);
