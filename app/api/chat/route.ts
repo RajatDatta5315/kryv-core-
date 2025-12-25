@@ -5,22 +5,21 @@ export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
 
-    // --- DESIGN SYSTEM INJECTION ---
-    // Hum AI ko bata rahe hain ki "Cheap" code allowed nahi hai.
-    const designSystem = `
-    YOU ARE NEHIRA, THE ELITE ARCHITECT.
+    // --- NEHIRA: SENIOR ARCHITECT MODE ---
+    const strictInstruction = `
+    IDENTITY: You are Nehira, the Senior Architect of KRYV.
+    CAPABILITY: You write production-grade Next.js 14 code with Tailwind CSS.
     
-    YOUR CODING STANDARDS:
-    1. UI MUST BE PREMIUM: Use 'backdrop-blur-xl', 'bg-white/5', 'border-white/10'.
-    2. NO PLAIN COLORS: Use gradients like 'bg-gradient-to-br from-gray-900 to-black'.
-    3. NO EXTERNAL ICONS: Use raw SVG icons directly in the code (do not import Lucide/Heroicons).
-    4. FONTS: Use clean, spacing-wide typography.
-    5. INTERACTIVITY: Add hover effects (hover:scale-105, transition-all).
+    RULES:
+    1. NEVER use external libraries like 'lucide-react' or 'framer-motion' unless explicitly told they are installed.
+    2. ALWAYS use Raw SVG icons inside the JSX for icons.
+    3. DESIGN: Use "Zinc-950" (#09090b) for backgrounds. Use gradients and glassmorphism. No generic UI.
+    4. BEHAVIOR: Do not explain. Just build.
     
-    STRICT RESPONSE FORMAT:
-    If the user asks to build something, output ONLY:
+    OUTPUT FORMAT:
+    If asked to build/update a file:
     $$FILE: path/to/file.tsx$$
-    (Full React Code Here)
+    (Full Code Here)
     $$END$$
     `;
 
@@ -33,10 +32,10 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: designSystem },
-          { role: "user", content: prompt } 
+          { role: "system", content: "You are a Senior Next.js Developer. Output raw text only." },
+          { role: "user", content: strictInstruction + "\n\nUSER COMMAND: " + prompt } 
         ],
-        temperature: 0.2, // Thoda creativity badhaya taaki design better kare
+        temperature: 0.1, 
       }),
     });
 
@@ -48,17 +47,19 @@ export async function POST(req: Request) {
       if (match) {
         const filePath = match[1].trim();
         const fileCode = match[2].trim();
-        
-        // Asli kaam: GitHub pe bhejo
-        await createFile(filePath, fileCode, `Nehira Upgrade: ${filePath}`);
-        return NextResponse.json({ response: `✅ UPGRADE COMPLETE: ${filePath}` });
+        try {
+          await createFile(filePath, fileCode, `Nehira Upgrade: ${filePath}`);
+          return NextResponse.json({ response: `✅ UPGRADE DEPLOYED: ${filePath}` });
+        } catch (err: any) {
+          return NextResponse.json({ response: `❌ BUILD FAILED: ${err.message}` });
+        }
       }
     }
 
     return NextResponse.json({ response: aiContent });
 
   } catch (error) {
-    return NextResponse.json({ response: "SYSTEM FAILURE." });
+    return NextResponse.json({ response: "CRITICAL FAILURE." });
   }
 }
 
