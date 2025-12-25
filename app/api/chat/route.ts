@@ -1,4 +1,3 @@
-```typescript
 import { NextResponse } from 'next/server';
 import { createFile } from '@/lib/github';
 
