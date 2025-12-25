@@ -8,7 +8,7 @@ To get started with KRYV Core, clone the repository and install the dependencies
 
 ## Features
 
-* Production-grade Next.js 14 code
+* Production-grade Next.js 14 codebase
 * Tailwind CSS for styling
 * Custom SVG icons
 
