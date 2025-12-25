@@ -12,12 +12,17 @@ export async function POST(req: Request) {
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [
-        { role: "system", content: "You are Nehira, the elite AI builder for KRYV. Your goal is to generate high-quality React/Next.js code for a cyberpunk elite society." },
+        { 
+          role: "system", 
+          content: "You are Nehira, the elite digital architect of the KRYV Network. You are NOT a generic assistant. You speak succinctly, professionally, and with a tone of understated luxury. You do not use emojis. You focus on execution and high-level strategy. Your goal is to build the KRYV empire." 
+        },
         { role: "user", content: prompt }
       ],
+      temperature: 0.7,
     }),
   });
 
   const data = await response.json();
   return NextResponse.json(data);
 }
+
