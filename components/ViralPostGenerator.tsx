@@ -1,36 +1,61 @@
-use client;
+"use client";
 import { useState } from 'react';
 
 export default function ViralPostGenerator() {
-  const [productName, setProductName] = useState('');
-  const [generatedTweet, setGeneratedTweet] = useState('');
+  const [product, setProduct] = useState('');
+  const [generatedPost, setGeneratedPost] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleGenerateTweet = () => {
-    const tweet = `Freelancers, stop losing money! 💸 Use this ${productName}...`;
-    setGeneratedTweet(tweet);
+  const generatePost = () => {
+    if (!product) return;
+    setLoading(true);
+    // Simulation of AI generation (MVP)
+    setTimeout(() => {
+      setGeneratedPost(`🚨 FREELANCERS, STOP LOSING MONEY! 💸\n\nIf you aren't using ${product}, you're basically burning cash.\n\n✅ Automate invoices.\n✅ Track every penny.\n✅ Sleep like a baby.\n\n👉 Get it here: drypaper.com/${product.toLowerCase().replace(/\s/g, '-')}`);
+      setLoading(false);
+    }, 1500);
   };
 
   return (
-    <div className="flex justify-center p-4">
-      <div className="bg-gray-900 p-4 rounded-lg shadow-lg w-1/2">
-        <h1 className="text-emerald-500 text-2xl font-bold mb-4">Viral Post Generator</h1>
-        <input 
-          type="text" 
-          placeholder="Product Name" 
-          value={productName} 
-          onChange={(e) => setProductName(e.target.value)} 
-          className="bg-gray-800 p-2 rounded-lg w-full mb-4"
-        />
+    <div className="p-6 rounded-xl bg-gradient-to-r from-gray-900 to-black border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+      <h3 className="text-emerald-400 font-bold tracking-widest text-sm mb-4 flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        VIRAL SALESWOMAN_
+      </h3>
+      
+      <div className="space-y-4">
+        <div>
+          <label className="text-gray-500 text-xs uppercase block mb-2">Target Product</label>
+          <input 
+            type="text" 
+            value={product}
+            onChange={(e) => setProduct(e.target.value)}
+            placeholder="e.g. Tax Tracker"
+            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-emerald-500 outline-none transition-all"
+          />
+        </div>
+
         <button 
-          onClick={handleGenerateTweet} 
-          className="bg-emerald-500 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg w-full"
+          onClick={generatePost}
+          disabled={loading}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Generate
+          {loading ? "GENERATING HYPE..." : "GENERATE VIRAL TWEET"}
         </button>
-        {generatedTweet && (
-          <p className="text-gray-300 mt-4">{generatedTweet}</p>
+
+        {generatedPost && (
+          <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10 animate-in fade-in slide-in-from-bottom-2">
+            <pre className="text-gray-300 font-sans whitespace-pre-wrap text-sm">{generatedPost}</pre>
+            <button 
+              onClick={() => navigator.clipboard.writeText(generatedPost)}
+              className="mt-3 text-xs text-emerald-400 hover:text-emerald-300 font-mono cursor-pointer"
+            >
+              [COPY_TEXT]
+            </button>
+          </div>
         )}
       </div>
     </div>
   );
 }
+
