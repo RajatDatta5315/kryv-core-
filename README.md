@@ -1,6 +1,6 @@
 # KRYV Core
 
-KRYV Core is a Next.js 14 application built with Tailwind CSS. It serves as the foundation for the KRYV ecosystem.
+KRYV Core is a Next.js 14 application built with Tailwind CSS.
 
 ## Getting Started
 
@@ -8,7 +8,7 @@ To get started with KRYV Core, clone the repository and install the dependencies
 
 ## Features
 
-* Production-grade Next.js 14 codebase
+* Production-grade Next.js 14 code
 * Tailwind CSS for styling
 * Custom SVG icons
 
