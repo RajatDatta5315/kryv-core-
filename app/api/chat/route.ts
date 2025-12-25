@@ -5,14 +5,10 @@ export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
 
-    // --- SECURITY DISABLED FOR SPEED RUN ---
-    // Humne Access Denied wala code hata diya hai.
-    // Ab seedha kaam hoga.
-    
-    // --- STRICT INSTRUCTION LAYER ---
+    // STRICT INSTRUCTION
     const strictInstruction = `
     TASK: You are a silent code generator.
-    1. DO NOT explain. DO NOT say "Here is the code".
+    1. DO NOT explain. 
     2. ONLY output the file content in this format:
     $$FILE: path/to/file.tsx$$
     (Code here)
@@ -39,7 +35,6 @@ export async function POST(req: Request) {
     const data = await response.json();
     let aiContent = data.choices?.[0]?.message?.content || "System Error";
 
-    // --- EXECUTION LAYER ---
     if (aiContent.includes("$$FILE:")) {
       const match = aiContent.match(/\$\$FILE: (.*?)\$\$\n([\s\S]*?)\$\$END\$\$/);
       
@@ -50,10 +45,13 @@ export async function POST(req: Request) {
         try {
           await createFile(filePath, fileCode, `Nehira Auto-Build: ${filePath}`);
           return NextResponse.json({ 
-            response: `✅ FILE CREATED: ${filePath}\n\n(Wait 30s & Refresh Page)` 
+            response: `✅ SUCCESS: File Created at ${filePath}` 
           });
-        } catch (err) {
-          return NextResponse.json({ response: `❌ GITHUB ERROR: Check Repo Name/Token.` });
+        } catch (err: any) {
+          // 🚨 ERROR DIKHAO CHAT MEIN
+          return NextResponse.json({ 
+            response: `❌ FAILED: ${err.message || "Unknown GitHub Error"}` 
+          });
         }
       }
     }
