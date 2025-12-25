@@ -1,4 +1,3 @@
-```typescript
 const VERCEL_TOKEN = process.env.VERCEL_API_TOKEN;
 const PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 
@@ -48,4 +47,3 @@ export async function getLatestBuildError(): Promise<string | null> {
     return null;
   }
 }
-```
