@@ -1,89 +1,77 @@
-```tsx
-import React from 'react';
-
-const Dashboard = () => {
+export default function Dashboard() {
   return (
-    <div className="h-screen w-screen bg-zinc-950 flex">
-      <div className="sidebar w-64 h-screen bg-white/5 border-white/10 backdrop-blur-xl flex flex-col py-4">
-        <svg
-          className="w-6 h-6 mx-auto mb-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-          />
-        </svg>
-        <nav className="flex flex-col space-y-2">
-          <a
-            href="#"
-            className="text-white/80 hover:text-white transition-all hover:scale-105 py-2 px-4"
-          >
-            Dashboard
-          </a>
-          <a
-            href="#"
-            className="text-white/80 hover:text-white transition-all hover:scale-105 py-2 px-4"
-          >
-            Agents
-          </a>
-          <a
-            href="#"
-            className="text-white/80 hover:text-white transition-all hover:scale-105 py-2 px-4"
-          >
-            Settings
-          </a>
-        </nav>
-      </div>
-      <div className="flex-1 p-4">
-        <h1 className="text-3xl font-bold text-white mb-4">Agent Grid</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            className="bg-white/5 border border-gray-700 border-opacity-50 rounded-lg p-4 hover:scale-105 transition-all"
-            style={{
-              borderImageSource: 'linear-gradient(360deg, #03d7fc, #ff69b4)',
-              borderImageSlice: '1',
-              imageRendering: 'pixelated',
-            }}
-          >
-            <h2 className="text-lg font-bold text-white mb-2">Orion - Market Sniper</h2>
-            <p className="text-sm text-white/80 mb-2">Status: Active</p>
-            <p className="text-sm text-white/80 mb-2">Earnings: $450</p>
-          </div>
-          <div
-            className="bg-white/5 border border-gray-700 border-opacity-50 rounded-lg p-4 hover:scale-105 transition-all"
-            style={{
-              borderImageSource: 'linear-gradient(360deg, #ff69b4, #03d7fc)',
-              borderImageSlice: '1',
-              imageRendering: 'pixelated',
-            }}
-          >
-            <h2 className="text-lg font-bold text-white mb-2">Velvet - Content Creator</h2>
-            <p className="text-sm text-white/80 mb-2">Status: Idle</p>
-            <p className="text-sm text-white/80 mb-2">Earnings: $0</p>
-          </div>
-          <div
-            className="bg-white/5 border border-gray-700 border-opacity-50 rounded-lg p-4 hover:scale-105 transition-all"
-            style={{
-              borderImageSource: 'linear-gradient(360deg, #03d7fc, #8e44ad)',
-              borderImageSlice: '1',
-              imageRendering: 'pixelated',
-            }}
-          >
-            <h2 className="text-lg font-bold text-white mb-2">Nexus - Code Builder</h2>
-            <p className="text-sm text-white/80 mb-2">Status: Training</p>
-            <p className="text-sm text-white/80 mb-2">Earnings: $0</p>
-          </div>
+    <div className="flex min-h-screen bg-[#09090b] text-gray-100 font-sans selection:bg-green-500/30">
+      {/* Sidebar - Glassmorphism Manual */}
+      <aside className="fixed left-0 top-0 h-full w-64 border-r border-white/5 bg-[#09090b]/80 backdrop-blur-xl z-50 flex flex-col p-6">
+        <div className="mb-10 flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]"></div>
+          <h1 className="text-xl font-bold tracking-[0.2em] text-white">KRYV_</h1>
         </div>
-      </div>
+        
+        <nav className="space-y-2">
+          {['Dashboard', 'Agents', 'Revenue', 'Settings'].map((item) => (
+            <div key={item} className="cursor-pointer rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-gray-400 transition-all hover:border-white/10 hover:bg-white/5 hover:text-white">
+              {item}
+            </div>
+          ))}
+        </nav>
+        
+        <div className="mt-auto border-t border-white/5 pt-6">
+          <div className="text-xs uppercase tracking-widest text-gray-600">Status: Architect</div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="ml-64 flex-1 p-10">
+        <header className="mb-12 flex justify-between items-end border-b border-white/5 pb-6">
+          <div>
+            <h2 className="text-3xl font-light text-white">Command Center</h2>
+            <p className="mt-2 text-sm text-gray-500">Overview of your Agentic Empire</p>
+          </div>
+          <div className="rounded-full border border-green-500/20 bg-green-500/10 px-4 py-1 text-xs font-bold text-green-500">
+            SYSTEM ONLINE
+          </div>
+        </header>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {[
+            { label: 'Active Agents', val: '3', color: 'text-white' },
+            { label: 'Monthly Revenue', val: '$450.00', color: 'text-green-400' },
+            { label: 'System Load', val: '12%', color: 'text-blue-400' }
+          ].map((stat, i) => (
+            <div key={i} className="relative overflow-hidden rounded-xl border border-white/5 bg-[#121214] p-8 shadow-2xl transition-all hover:border-white/10">
+              <div className="text-xs uppercase tracking-widest text-gray-500 mb-4">{stat.label}</div>
+              <div className={`text-5xl font-bold ${stat.color}`}>{stat.val}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Agent Grid */}
+        <h3 className="mt-12 mb-6 text-sm uppercase tracking-widest text-gray-500">Deployed Units</h3>
+        <div className="grid gap-4">
+          {[
+            { name: 'Orion', role: 'Market Sniper', status: 'Active', profit: '+$320' },
+            { name: 'Velvet', role: 'Content Creator', status: 'Idle', profit: '+$130' },
+            { name: 'Nexus', role: 'Code Builder', status: 'Training', profit: '$0' }
+          ].map((agent, i) => (
+            <div key={i} className="flex items-center justify-between rounded-lg border border-white/5 bg-[#121214] p-4 transition-all hover:bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className={`h-2 w-2 rounded-full ${agent.status === 'Active' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                <div>
+                  <div className="font-bold text-white">{agent.name}</div>
+                  <div className="text-xs text-gray-500">{agent.role}</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-mono text-green-400">{agent.profit}</div>
+                <div className="text-xs text-gray-600">{agent.status}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
     </div>
   );
-};
+}
 
-export default Dashboard;
-```
