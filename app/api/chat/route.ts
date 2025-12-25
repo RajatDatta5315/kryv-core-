@@ -5,15 +5,23 @@ export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
 
-    // STRICT INSTRUCTION
-    const strictInstruction = `
-    TASK: You are a silent code generator.
-    1. DO NOT explain. 
-    2. ONLY output the file content in this format:
+    // --- DESIGN SYSTEM INJECTION ---
+    // Hum AI ko bata rahe hain ki "Cheap" code allowed nahi hai.
+    const designSystem = `
+    YOU ARE NEHIRA, THE ELITE ARCHITECT.
+    
+    YOUR CODING STANDARDS:
+    1. UI MUST BE PREMIUM: Use 'backdrop-blur-xl', 'bg-white/5', 'border-white/10'.
+    2. NO PLAIN COLORS: Use gradients like 'bg-gradient-to-br from-gray-900 to-black'.
+    3. NO EXTERNAL ICONS: Use raw SVG icons directly in the code (do not import Lucide/Heroicons).
+    4. FONTS: Use clean, spacing-wide typography.
+    5. INTERACTIVITY: Add hover effects (hover:scale-105, transition-all).
+    
+    STRICT RESPONSE FORMAT:
+    If the user asks to build something, output ONLY:
     $$FILE: path/to/file.tsx$$
-    (Code here)
+    (Full React Code Here)
     $$END$$
-    3. If the user asks for a specific path, USE IT.
     `;
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -25,10 +33,10 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: "You are a backend process. You output raw text only." },
-          { role: "user", content: strictInstruction + "\n\nUSER REQUEST: " + prompt } 
+          { role: "system", content: designSystem },
+          { role: "user", content: prompt } 
         ],
-        temperature: 0.1, 
+        temperature: 0.2, // Thoda creativity badhaya taaki design better kare
       }),
     });
 
@@ -37,29 +45,20 @@ export async function POST(req: Request) {
 
     if (aiContent.includes("$$FILE:")) {
       const match = aiContent.match(/\$\$FILE: (.*?)\$\$\n([\s\S]*?)\$\$END\$\$/);
-      
       if (match) {
         const filePath = match[1].trim();
         const fileCode = match[2].trim();
-
-        try {
-          await createFile(filePath, fileCode, `Nehira Auto-Build: ${filePath}`);
-          return NextResponse.json({ 
-            response: `✅ SUCCESS: File Created at ${filePath}` 
-          });
-        } catch (err: any) {
-          // 🚨 ERROR DIKHAO CHAT MEIN
-          return NextResponse.json({ 
-            response: `❌ FAILED: ${err.message || "Unknown GitHub Error"}` 
-          });
-        }
+        
+        // Asli kaam: GitHub pe bhejo
+        await createFile(filePath, fileCode, `Nehira Upgrade: ${filePath}`);
+        return NextResponse.json({ response: `✅ UPGRADE COMPLETE: ${filePath}` });
       }
     }
 
     return NextResponse.json({ response: aiContent });
 
   } catch (error) {
-    return NextResponse.json({ response: "CRITICAL SYSTEM FAILURE." });
+    return NextResponse.json({ response: "SYSTEM FAILURE." });
   }
 }
 
