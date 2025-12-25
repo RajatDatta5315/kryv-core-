@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 export default function NehiraTerminal() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
-    { role: "system", content: "NEHIRA V1.0 // SYSTEMS ONLINE. READY TO BUILD." }
+    { role: "system", content: "NEHIRA V1.0 // SYSTEMS ONLINE. AUTHENTICATION REQUIRED." }
   ]);
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -19,12 +19,12 @@ export default function NehiraTerminal() {
     const userCmd = input;
     setInput(""); 
     
-    // User Message (White text on Gray background for visibility)
+    // UI FIX: User message ab Dark Grey hai with White Text
     setMessages(prev => [...prev, { role: "user", content: userCmd }]);
     setLoading(true);
     
     try {
-      // 1. Minimum thinking delay (1.5s)
+      // 1. Minimum delay for realism
       const minDelayPromise = new Promise(resolve => setTimeout(resolve, 1500));
       
       // 2. API Call
@@ -59,16 +59,16 @@ export default function NehiraTerminal() {
           <span className="ml-2 text-[10px] text-gray-500 font-mono tracking-widest uppercase">Nehira / Architect / V1</span>
         </div>
 
-        {/* Chat Area (Badi Height: 75vh) */}
+        {/* Chat Area */}
         <div className="h-[60vh] md:h-[75vh] overflow-y-auto p-6 space-y-4 font-sans text-sm scrollbar-thin scrollbar-thumb-gray-800">
           {messages.map((msg, idx) => (
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-lg p-3 leading-relaxed ${
+              <div className={`max-w-[85%] rounded-lg p-3 leading-relaxed border ${
                 msg.role === 'user' 
-                  ? 'bg-[#ffffff] text-black font-bold shadow-lg'  // FIXED: White BG, Black Text
+                  ? 'bg-[#333333] text-white border-gray-600 shadow-lg'  // FIXED: Dark Grey BG + White Text
                   : msg.role === 'system'
-                  ? 'text-gray-500 text-xs font-mono'
-                  : 'bg-[#1a1a1c] text-gray-200 border border-white/5 shadow-md'
+                  ? 'text-gray-500 text-xs font-mono border-transparent'
+                  : 'bg-[#1a1a1c] text-gray-200 border-white/5 shadow-md'
               }`}>
                 {msg.content}
               </div>
@@ -95,7 +95,7 @@ export default function NehiraTerminal() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCommand()}
-            placeholder="Command Nehira to build..."
+            placeholder="Enter Authorization Code..."
             className="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-600 font-medium text-base"
             autoFocus
           />
@@ -104,4 +104,3 @@ export default function NehiraTerminal() {
     </div>
   );
 }
-
