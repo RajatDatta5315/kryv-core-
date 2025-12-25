@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link"; // Link component import kiya navigation ke liye
 
 export default function NehiraTerminal() {
   const [input, setInput] = useState("");
-  // Change 1: Initial message badal diya. Agar ye dikhe toh samajh lena update ho gaya.
   const [messages, setMessages] = useState([
-    { role: "system", content: "NEHIRA V1.1 // SECURITY DISABLED. READY TO BUILD." }
+    { role: "system", content: "NEHIRA V1.1 // READY. COMMAND ME." }
   ]);
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -47,12 +47,19 @@ export default function NehiraTerminal() {
       
       <div className="relative bg-[#09090b] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col">
         
-        {/* Header */}
-        <div className="bg-[#121214] px-4 py-3 border-b border-white/5 flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-          <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-          <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-          <span className="ml-2 text-[10px] text-gray-500 font-mono tracking-widest uppercase">Nehira / Architect</span>
+        {/* Header with Dashboard Link */}
+        <div className="bg-[#121214] px-4 py-3 border-b border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+            <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+            <span className="ml-2 text-[10px] text-gray-500 font-mono tracking-widest uppercase">Nehira / Architect</span>
+          </div>
+          
+          {/* NAVIGATION BUTTON ADDED HERE */}
+          <Link href="/dashboard" className="text-[10px] text-green-500 hover:text-green-400 font-mono tracking-widest border border-green-500/20 px-3 py-1 rounded hover:bg-green-500/10 transition-all">
+            ↗ OPEN DASHBOARD
+          </Link>
         </div>
 
         {/* Chat Area */}
@@ -61,7 +68,6 @@ export default function NehiraTerminal() {
             <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div 
                 className={`max-w-[85%] rounded-lg p-3 leading-relaxed border shadow-md`}
-                // Inline styles for absolute safety
                 style={{
                   backgroundColor: msg.role === 'user' ? '#333333' : (msg.role === 'system' ? 'transparent' : '#1a1a1c'),
                   color: msg.role === 'user' ? '#ffffff' : '#e5e5e5',
@@ -83,7 +89,7 @@ export default function NehiraTerminal() {
           <div ref={bottomRef} />
         </div>
 
-        {/* Input Area - NUCLEAR FIX */}
+        {/* Input Area */}
         <div className="p-4 bg-[#121214] border-t border-white/5 flex items-center gap-3">
           <span className="text-gray-500 text-lg">{">"}</span>
           <input
@@ -93,10 +99,9 @@ export default function NehiraTerminal() {
             onKeyDown={(e) => e.key === "Enter" && handleCommand()}
             placeholder="Type here..."
             className="flex-1 border-none outline-none font-medium text-base"
-            // YE HAI ASLI FIX: Inline Styles override everything
             style={{
-              backgroundColor: '#222222', // Dark Grey background
-              color: '#ffffff',           // Pure White text
+              backgroundColor: '#222222',
+              color: '#ffffff',
               padding: '10px',
               borderRadius: '5px'
             }}
