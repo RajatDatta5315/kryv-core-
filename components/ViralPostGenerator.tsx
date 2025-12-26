@@ -1,94 +1,86 @@
 "use client";
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Send, Cpu, Save } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-export default function ViralPostGenerator() {
+// Accept the activeAgent prop
+export default function ViralPostGenerator({ activeAgent = "Nehira (Architect)" }: { activeAgent?: string }) {
   const [product, setProduct] = useState('');
-  const [generatedPost, setGeneratedPost] = useState('');
+  const [result, setResult] = useState('');
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState('');
   const supabase = createClientComponentClient();
 
-  const generatePost = async () => {
+  const handleGenerate = async () => {
     if (!product) return;
     setLoading(true);
+    setStatus('Contacting Agent...');
+    setResult('');
 
     try {
-      // 1. Ask Nehira (AI) to write the post
-      const res = await fetch('/api/chat', {
+      // 1. CALL THE BRAIN (Pass prompt AND agentName)
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          prompt: `Write a viral, aggressive marketing tweet for a product called "${product}". 
-          Target audience: Freelancers. 
-          Pain point: Losing money/time. 
-          Use emojis. Keep it under 280 chars. 
-          Format: Just the tweet text.` 
-        })
+            prompt: product,
+            agentName: activeAgent // <--- YE NAYA HAI (Sending Agent Identity)
+        }),
       });
-      
-      const data = await res.json();
-      const aiText = data.response;
 
-      setGeneratedPost(aiText);
+      const data = await response.json();
+      setResult(data.response);
+      setStatus('✓ Saved to Database');
 
-      // 2. Save to Database (Supabase)
-      const { error } = await supabase
-        .from('marketing_posts')
-        .insert([
-          { 
-            product_name: product, 
-            content: aiText, 
-            status: 'pending',
-            platform: 'twitter'
-          }
-        ]);
+      // 2. SAVE TO MEMORY (Supabase)
+      await supabase.from('marketing_posts').insert([
+        { content: data.response, platform: 'twitter', product_name: product }
+      ]);
 
-      if (error) console.error('DB Save Error:', error);
-
-    } catch (err) {
-      console.error(err);
-      alert("Nehira is overloaded. Try again.");
+    } catch (error) {
+      setResult('Error connecting to Neural Net.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-6 rounded-xl bg-gradient-to-r from-gray-900 to-black border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-      <h3 className="text-emerald-400 font-bold tracking-widest text-sm mb-4 flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        VIRAL SALESWOMAN (LIVE)
-      </h3>
-      
-      <div className="space-y-4">
-        <div>
-          <label className="text-gray-500 text-xs uppercase block mb-2">Target Product</label>
-          <input 
-            type="text" 
-            value={product}
-            onChange={(e) => setProduct(e.target.value)}
-            placeholder="e.g. Tax Tracker"
-            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white focus:border-emerald-500 outline-none transition-all"
-          />
-        </div>
-
-        <button 
-          onClick={generatePost}
-          disabled={loading}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "CONNECTING TO NEHIRA..." : "GENERATE & SAVE"}
-        </button>
-
-        {generatedPost && (
-          <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10 animate-in fade-in slide-in-from-bottom-2">
-            <pre className="text-gray-300 font-sans whitespace-pre-wrap text-sm">{generatedPost}</pre>
-            <div className="mt-2 text-xs text-emerald-500 flex items-center gap-1">
-              <span>✓ Saved to Database</span>
-            </div>
-          </div>
-        )}
+    <div className="p-6 rounded-xl bg-gradient-to-br from-gray-900 to-black border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.1)]">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <h2 className="text-sm font-bold tracking-widest text-emerald-500 uppercase">
+            LINKED TO: {activeAgent}
+        </h2>
       </div>
+
+      <div className="mb-4">
+        <label className="block text-xs text-gray-500 uppercase tracking-widest mb-2">Command / Input</label>
+        <input 
+          type="text" 
+          value={product}
+          onChange={(e) => setProduct(e.target.value)}
+          placeholder={`Talk to ${activeAgent.split(' ')[0]}...`}
+          className="w-full bg-black/50 border border-white/10 rounded-lg p-4 text-white focus:border-emerald-500 focus:outline-none transition-all font-mono"
+        />
+      </div>
+
+      <button 
+        onClick={handleGenerate}
+        disabled={loading}
+        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? <Cpu className="animate-spin" /> : <Send size={18} />}
+        {loading ? 'PROCESSING...' : 'EXECUTE'}
+      </button>
+
+      {result && (
+        <div className="mt-6 p-4 bg-black/40 rounded-lg border border-white/5 animate-in fade-in slide-in-from-bottom-2">
+          <p className="text-gray-300 leading-relaxed whitespace-pre-wrap font-mono text-sm">{result}</p>
+          <div className="mt-3 flex items-center gap-2 text-xs text-emerald-500">
+             <Save size={12} /> {status}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
