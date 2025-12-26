@@ -11,11 +11,10 @@ export async function POST(req: Request) {
     1. Write PURE CODE only. NO Markdown fences.
     2. Output format: $$FILE: path$$...code...$$END$$`;
 
-    // 1. Log Key Presence (Security check, don't log the full key)
     const key = process.env.SAMBANOVA_API_KEY;
-    if (!key) return NextResponse.json({ response: "SYSTEM ERROR: API Key Missing in Vercel." });
+    if (!key) return NextResponse.json({ response: "SYSTEM ERROR: API Key Missing." });
 
-    // 2. Call SambaNova with a Safer Model Name
+    // FIX: Using 70B Model (Stable & Available)
     const response = await fetch("https://api.sambanova.ai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -23,7 +22,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "Meta-Llama-3.1-405B-Instruct", // Check exact spelling
+        model: "Meta-Llama-3.1-70B-Instruct", 
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: "CMD: " + prompt }
@@ -33,16 +32,11 @@ export async function POST(req: Request) {
       }),
     });
 
-    // 3. READ RAW TEXT FIRST (To catch "The request..." errors)
     const rawText = await response.text();
 
     try {
         const data = JSON.parse(rawText);
-        
-        // Agar API ne Error JSON bheja
-        if (data.error) {
-            return NextResponse.json({ response: "SAMBANOVA ERROR: " + data.error.message });
-        }
+        if (data.error) return NextResponse.json({ response: "SAMBANOVA ERROR: " + data.error.message });
 
         let aiContent = data.choices?.[0]?.message?.content || "";
 
@@ -59,9 +53,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ response: aiContent });
 
     } catch (parseError) {
-        // Yahan wo "Unexpected token T" pakda jayega
-        console.error("Raw Response:", rawText);
-        return NextResponse.json({ response: "CRITICAL API FAILURE: " + rawText }); 
+        return NextResponse.json({ response: "API FAILURE: " + rawText }); 
     }
 
   } catch (error: any) {
