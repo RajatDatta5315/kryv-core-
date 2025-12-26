@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Send, Cpu, Save } from 'lucide-react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-// Accept the activeAgent prop
 export default function ViralPostGenerator({ activeAgent = "Nehira (Architect)" }: { activeAgent?: string }) {
   const [product, setProduct] = useState('');
   const [result, setResult] = useState('');
@@ -14,31 +13,38 @@ export default function ViralPostGenerator({ activeAgent = "Nehira (Architect)" 
   const handleGenerate = async () => {
     if (!product) return;
     setLoading(true);
-    setStatus('Contacting Agent...');
+    setStatus('Contacting Agent Core...'); // Updated Status text
     setResult('');
 
     try {
-      // 1. CALL THE BRAIN (Pass prompt AND agentName)
-      const response = await fetch('/api/chat', {
+      // --- THE CONNECTION TO NEHIRA CORE (BRAIN) ---
+      // NOTE: Agar tera URL alag hai, toh yahan change kar
+      const response = await fetch('https://nehira-core.vercel.app/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             prompt: product,
-            agentName: activeAgent // <--- YE NAYA HAI (Sending Agent Identity)
+            agentName: activeAgent 
         }),
       });
 
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.response || 'Connection Failed');
+      }
+
       setResult(data.response);
       setStatus('✓ Saved to Database');
 
-      // 2. SAVE TO MEMORY (Supabase)
+      // Save to KRYV's memory (Supabase)
       await supabase.from('marketing_posts').insert([
         { content: data.response, platform: 'twitter', product_name: product }
       ]);
 
-    } catch (error) {
-      setResult('Error connecting to Neural Net.');
+    } catch (error: any) {
+      console.error(error);
+      setResult(`Error: Could not reach Nehira Core. Is the brain online? (${error.message})`);
     } finally {
       setLoading(false);
     }
@@ -70,7 +76,7 @@ export default function ViralPostGenerator({ activeAgent = "Nehira (Architect)" 
         className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? <Cpu className="animate-spin" /> : <Send size={18} />}
-        {loading ? 'PROCESSING...' : 'EXECUTE'}
+        {loading ? 'TRANSMITTING...' : 'EXECUTE'}
       </button>
 
       {result && (
@@ -84,4 +90,3 @@ export default function ViralPostGenerator({ activeAgent = "Nehira (Architect)" 
     </div>
   );
 }
-
