@@ -5,7 +5,6 @@ export async function POST(req: Request) {
   try {
     const { prompt } = await req.json();
 
-    // SYSTEM PROMPT (Nehira's Brain)
     const systemPrompt = `You are Nehira, the KRYV Architect.
     RULES:
     1. If asked to write code: Output format $$FILE: path$$...code...$$END$$. NO Markdown.
@@ -15,15 +14,15 @@ export async function POST(req: Request) {
     const key = process.env.HUGGINGFACE_API_KEY;
     if (!key) return NextResponse.json({ response: "SYSTEM ERROR: HuggingFace Key Missing." });
 
-    // MODEL: Mixtral 8x7B (Smart & Free)
-    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
+    // FIXED URL: Using 'router.huggingface.co' instead of 'api-inference'
+    const response = await fetch("https://router.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${key}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        inputs: `<s>[INST] ${systemPrompt} \n\n USER: ${prompt} [/INST]`, // Mixtral specific format
+        inputs: `<s>[INST] ${systemPrompt} \n\n USER: ${prompt} [/INST]`,
         parameters: {
           max_new_tokens: 2000,
           temperature: 0.3,
@@ -32,14 +31,13 @@ export async function POST(req: Request) {
       }),
     });
 
-    // Error Handling for Hugging Face "Loading" state
+    // Error Handling
     if (response.status === 503) {
       return NextResponse.json({ response: "Nehira is waking up (Model Loading)... Try again in 10 seconds." });
     }
 
     const result = await response.json();
     
-    // Hugging Face returns an array: [{ generated_text: "..." }]
     let aiContent = "";
     if (Array.isArray(result) && result[0]?.generated_text) {
       aiContent = result[0].generated_text;
@@ -49,7 +47,7 @@ export async function POST(req: Request) {
        aiContent = JSON.stringify(result);
     }
 
-    // --- Sanitizer & File Saver ---
+    // Sanitizer
     const fileMatch = aiContent.match(/\$\$FILE: (.*?)\$\$\n([\s\S]*?)\$\$END\$\$/);
     if (fileMatch) {
       const path = fileMatch[1].trim();
