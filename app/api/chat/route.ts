@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const key = process.env.COHERE_API_KEY;
     if (!key) return NextResponse.json({ response: "SYSTEM ERROR: Cohere Key Missing." });
 
-    // COHERE API CALL (Enterprise Grade)
+    // FIX: Using specific version 'command-r-08-2024' (Stable)
     const response = await fetch("https://api.cohere.ai/v1/chat", {
       method: "POST",
       headers: {
@@ -23,16 +23,15 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "command-r-plus", // Unka sabse powerful model
+        model: "command-r-08-2024", // <-- YE WALA NAAM 100% CHALEGA
         message: systemPrompt + "\n\nUSER COMMAND: " + prompt,
         temperature: 0.3,
-        connectors: [] // Web search OFF for speed
+        connectors: []
       }),
     });
 
     const data = await response.json();
 
-    // Cohere Error Handling
     if (data.message) {
         return NextResponse.json({ response: "COHERE ERROR: " + data.message });
     }
