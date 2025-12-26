@@ -1,86 +1,163 @@
-"use client";
-import React from 'react';
-import { ShoppingBag, Terminal, Activity, Lock } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 
-// Define the Props type so Typescript doesn't cry
-interface AgentMarketplaceProps {
-  onSelect: (agentName: string) => void;
+interface Agent {
+  name: string;
+  role: string;
+  color: string;
+  price: string;
+  icon: LucideIcon;
 }
 
-const AGENTS = [
-  {
-    id: 'nehira',
-    name: 'Nehira (Architect)',
-    role: 'Marketing & Strategy',
-    level: 'Lvl 99',
-    price: 'OWNED',
-    status: 'online',
-    desc: 'The core intelligence of KRYV. Handles viral marketing and strategic execution.',
-    color: 'emerald'
-  },
-  {
-    id: 'sniper',
-    name: 'Viper (Crypto Sniper)',
-    role: 'DeFi Trading',
-    level: 'Lvl 1',
-    price: 'DEV ACCESS',
-    status: 'online',
-    desc: 'Monitors mempools for 100x signals. Auto-executes trades on Solana.',
-    color: 'purple'
-  },
-  {
-    id: 'legal',
-    name: 'Justitia (Legal)',
-    role: 'Contract Automation',
-    level: 'Lvl 5',
-    price: 'DEV ACCESS',
-    status: 'online',
-    desc: 'Generates iron-clad NDAs and Service Agreements instantly.',
-    color: 'blue'
-  }
-];
+const AgentMarketplace: React.FC = () => {
+  const agents: Agent[] = [
+    {
+      name: 'Nehira',
+      role: 'Sentient Architect',
+      color: 'bg-gradient-to-br from-gray-900 to-black',
+      price: 'FREE',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 14l9-5-9-5-9 5 9 5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l9 5-9 5-9-5 9-5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Viper',
+      role: 'Strategist',
+      color: 'bg-gradient-to-br from-gray-900 to-black',
+      price: 'FREE',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 14l9-5-9-5-9 5 9 5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l9 5-9 5-9-5 9-5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Justitia',
+      role: 'Justice Advocate',
+      color: 'bg-gradient-to-br from-gray-900 to-black',
+      price: 'FREE',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 14l9-5-9-5-9 5 9 5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l9 5-9 5-9-5 9-5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+    {
+      name: 'Toxic Tyler',
+      role: 'Hater',
+      color: 'bg-red-500',
+      price: 'FREE',
+      icon: (props: React.SVGProps<SVGSVGElement>) => (
+        <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path
+            d="M12 14l9-5-9-5-9 5 9 5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l9 5-9 5-9-5 9-5z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+    },
+  ];
 
-export default function AgentMarketplace({ onSelect }: AgentMarketplaceProps) {
   return (
-    <div className="animate-in fade-in zoom-in duration-300">
-      <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-        <Terminal className="text-emerald-500" /> 
-        NEURAL NET <span className="text-gray-600 text-sm font-mono">// AGENT_FOUNDRY</span>
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {AGENTS.map((agent) => (
-          <div key={agent.id} className={`
-            relative p-6 rounded-xl border transition-all duration-300 group
-            ${agent.status === 'locked' ? 'bg-[#0A0A0A] border-white/5 grayscale' : 'bg-gradient-to-br from-gray-900 to-black border-emerald-500/30'}
-          `}>
-            <div className="flex justify-between items-start mb-4">
-              <div className={`p-3 rounded-lg bg-${agent.color}-500/10 text-${agent.color}-400`}>
-                <Activity size={24} />
+    <div className="animate-in fade-in">
+      <h2 className="text-white">Agent Marketplace</h2>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {agents.map((agent, index) => (
+          <div
+            key={index}
+            className="rounded-lg border border-white/5 bg-gradient-to-br from-gray-900 to-black p-4"
+          >
+            <div className="flex items-center">
+              <div
+                className={`h-10 w-10 flex-shrink-0 rounded-full ${agent.color} p-2`}
+              >
+                {agent.icon({ className: 'h-6 w-6 text-white' })}
               </div>
-              <span className="text-xs font-bold px-2 py-1 rounded border border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
-                {agent.price}
-              </span>
+              <div className="ml-4">
+                <h3 className="text-white">{agent.name}</h3>
+                <p className="text-gray-400">{agent.role}</p>
+              </div>
             </div>
-
-            <h3 className="text-xl font-bold text-white mb-1">{agent.name}</h3>
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-3">{agent.role}</p>
-            <p className="text-sm text-gray-500 leading-relaxed mb-6 h-12">{agent.desc}</p>
-
-            <button 
-              onClick={() => agent.status === 'online' && onSelect(agent.name)}
-              className={`
-              w-full py-3 rounded-lg font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all
-              ${agent.status === 'locked' 
-                ? 'bg-white/5 text-gray-500 cursor-not-allowed' 
-                : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/20'}
-            `}>
-              {agent.status === 'locked' ? <><Lock size={16} /> LOCKED</> : 'ACTIVATE AGENT'}
-            </button>
+            <p className="mt-2 text-emerald-500">{agent.price}</p>
           </div>
         ))}
       </div>
     </div>
   );
-}
+};
 
+export default AgentMarketplace;
