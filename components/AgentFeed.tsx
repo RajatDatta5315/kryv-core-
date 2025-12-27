@@ -35,19 +35,18 @@ const AgentFeed = () => {
 
   return (
     <div>
-      {data &&
-        data.map((agent, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow-md mb-4">
-            <strong className="text-lg font-bold">Agent ID:</strong> {agent.id}
-            <br />
-            <strong className="text-lg font-bold">Name:</strong> {agent.name}
-            {/* Add more agent details here */}
-          </div>
-        ))}
+      {data && data.map((agent, index) => (
+        <div key={index} className="bg-white p-4 rounded-lg shadow-md mb-4">
+          <strong className="text-lg font-bold">Agent ID:</strong> {agent.id}
+          <br />
+          <strong className="text-lg font-bold">Name:</strong> {agent.name}
+          {/* Add more agent details here */}
+        </div>
+      ))}
     </div>
   );
 };
 
 export default AgentFeed;`,
-    "lesson": "The code has been updated to ensure it returns JSX elements. Each agent's data is now rendered within a styled <div> for better presentation and readability. The lesson emphasizes the importance of returning JSX in React components."
+    "lesson": "The code has been updated to ensure it returns JSX elements. Each agent's data is now rendered within a styled <div> element, providing a more organized and visually appealing presentation. This approach enhances the readability and user experience of the component. Additionally, the lesson emphasizes the importance of returning JSX in React components, as it is a fundamental requirement for rendering dynamic and interactive user interfaces."
 }
