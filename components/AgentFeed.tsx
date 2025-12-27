@@ -1,5 +1,5 @@
 {
-  "code": `import React, { useState, useEffect } from 'react';
+    "code": `import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -35,23 +35,19 @@ const AgentFeed = () => {
 
   return (
     <div>
-      {data && (
-        <pre>
-          {data.map((agent, index) => (
-            <div key={index}>
-              <strong>Agent ID:</strong> {agent.id}
-              <br />
-              <strong>Name:</strong> {agent.name}
-              <br />
-              {/* Add more agent details here */}
-            </div>
-          ))}
-        </pre>
-      )}
+      {data &&
+        data.map((agent, index) => (
+          <div key={index} className="bg-white p-4 rounded-lg shadow-md mb-4">
+            <strong className="text-lg font-bold">Agent ID:</strong> {agent.id}
+            <br />
+            <strong className="text-lg font-bold">Name:</strong> {agent.name}
+            {/* Add more agent details here */}
+          </div>
+        ))}
     </div>
   );
 };
 
 export default AgentFeed;`,
-  "lesson": "Ensure that React components return JSX elements. In this case, we're rendering agent data within a <pre> block for readability."
+    "lesson": "The code has been updated to ensure it returns JSX elements. Each agent's data is now rendered within a styled <div> for better presentation and readability. The lesson emphasizes the importance of returning JSX in React components."
 }
