@@ -1,5 +1,5 @@
 {
-  "code": `import React, { useState, useEffect } from 'react';
+  "code": `import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -11,22 +11,17 @@ const AgentFeed = () => {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase URL or Key is missing.');
+        console.error('Supabase URL or Anon Key is missing.');
         return;
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: fetchedData, error } = await supabase.from('agents').select('*');
 
-      try {
-        const { data: fetchedData, error } = await supabase.from('agents').select('*');
-
-        if (error) {
-          console.error('Error fetching data:', error.message);
-        } else {
-          setData(fetchedData);
-        }
-      } catch (error) {
-        console.error('An unexpected error occurred:', error);
+      if (error) {
+        console.error('Error fetching data:', error.message);
+      } else {
+        setData(fetchedData);
       }
     };
 
@@ -39,5 +34,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch and Supabase for data retrieval, and ensure client-side keys are used for security."
+  "lesson": "Always use standard fetch methods and Supabase for data retrieval, and ensure environment variables are set for client-side components."
 }
