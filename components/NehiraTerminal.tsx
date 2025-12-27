@@ -1,113 +1,82 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link"; // Link component import kiya navigation ke liye
+import React, { useState, useEffect, useRef } from 'react';
+import { Terminal, Send, Cpu, ShieldCheck, Wifi } from 'lucide-react';
 
 export default function NehiraTerminal() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([
-    { role: "system", content: "NEHIRA V1.1 // READY. COMMAND ME." }
-  ]);
+  const [input, setInput] = useState('');
+  const [logs, setLogs] = useState<string[]>(["Initializing Neural Link...", "Connected to NEHIRA CORE [v2.0]"]);
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const endRef = useRef<HTMLDivElement>(null);
 
   const handleCommand = async () => {
     if (!input.trim()) return;
-    const userCmd = input;
-    setInput(""); 
-    
-    setMessages(prev => [...prev, { role: "user", content: userCmd }]);
+    const cmd = input;
+    setLogs(prev => [...prev, `> USER: ${cmd}`]);
+    setInput('');
     setLoading(true);
-    
+
     try {
-      const minDelayPromise = new Promise(resolve => setTimeout(resolve, 1500));
-      const apiCallPromise = fetch("/api/chat", {
-        method: "POST",
-        body: JSON.stringify({ prompt: userCmd }),
+      // 🟢 THE CRITICAL FIX: Direct Link to Nehira Brain
+      const res = await fetch('https://nehira.space/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: cmd, agentName: 'Nehira (Architect)' })
       });
 
-      const [_, res] = await Promise.all([minDelayPromise, apiCallPromise]);
+      if (!res.ok) throw new Error(`Status: ${res.status}`);
       const data = await res.json();
-      const aiReply = data.response || "Connection Interrupted.";
-      
-      setMessages(prev => [...prev, { role: "ai", content: aiReply }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { role: "system", content: "ERROR: UPLINK FAILED" }]);
+      setLogs(prev => [...prev, `> NEHIRA: ${data.response}`]);
+
+    } catch (e: any) {
+      setLogs(prev => [...prev, `> ERROR: Connection Failed (${e.message}). Check nehira.space status.`]);
     }
     setLoading(false);
   };
 
+  // Auto-scroll to bottom
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [logs]);
+
   return (
-    <div className="w-full max-w-4xl mt-4 relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+    <div className="w-full h-[500px] bg-black border border-emerald-500/30 rounded-lg p-4 font-mono text-sm flex flex-col shadow-2xl shadow-emerald-900/20 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-50"></div>
       
-      <div className="relative bg-[#09090b] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col">
-        
-        {/* Header with Dashboard Link */}
-        <div className="bg-[#121214] px-4 py-3 border-b border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-            <div className="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-            <span className="ml-2 text-[10px] text-gray-500 font-mono tracking-widest uppercase">Nehira / Architect</span>
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+        <div className="flex items-center gap-2 text-emerald-400">
+          <Terminal size={16} /> <span className="tracking-widest font-bold">NEHIRA TERMINAL</span>
+        </div>
+        <div className="flex gap-3 text-xs text-gray-500">
+          <span className="flex items-center gap-1 text-emerald-600"><Wifi size={12}/> ONLINE</span>
+          <span className="flex items-center gap-1"><Cpu size={12}/> CORE: ACTIVE</span>
+          <span className="flex items-center gap-1"><ShieldCheck size={12}/> SECURE</span>
+        </div>
+      </div>
+
+      {/* Logs Area */}
+      <div className="flex-1 overflow-y-auto space-y-2 mb-4 scrollbar-hide text-gray-300">
+        {logs.map((log, i) => (
+          <div key={i} className={`break-words ${log.startsWith('> USER') ? 'text-cyan-400' : log.startsWith('> ERROR') ? 'text-red-500' : 'text-emerald-100'}`}>
+            {log}
           </div>
-          
-          {/* NAVIGATION BUTTON ADDED HERE */}
-          <Link href="/dashboard" className="text-[10px] text-green-500 hover:text-green-400 font-mono tracking-widest border border-green-500/20 px-3 py-1 rounded hover:bg-green-500/10 transition-all">
-            ↗ OPEN DASHBOARD
-          </Link>
-        </div>
+        ))}
+        {loading && <div className="text-emerald-500 animate-pulse">Processing Request...</div>}
+        <div ref={endRef}></div>
+      </div>
 
-        {/* Chat Area */}
-        <div className="h-[60vh] md:h-[75vh] overflow-y-auto p-6 space-y-4 font-sans text-sm scrollbar-thin scrollbar-thumb-gray-800">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div 
-                className={`max-w-[85%] rounded-lg p-3 leading-relaxed border shadow-md`}
-                style={{
-                  backgroundColor: msg.role === 'user' ? '#333333' : (msg.role === 'system' ? 'transparent' : '#1a1a1c'),
-                  color: msg.role === 'user' ? '#ffffff' : '#e5e5e5',
-                  borderColor: msg.role === 'user' ? '#555555' : 'rgba(255,255,255,0.1)'
-                }}
-              >
-                {msg.content}
-              </div>
-            </div>
-          ))}
-          
-          {loading && (
-            <div className="flex justify-start">
-               <div className="bg-[#1a1a1c] border border-white/5 rounded-lg p-3">
-                 <span className="text-gray-400 text-xs animate-pulse">Building...</span>
-               </div>
-            </div>
-          )}
-          <div ref={bottomRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 bg-[#121214] border-t border-white/5 flex items-center gap-3">
-          <span className="text-gray-500 text-lg">{">"}</span>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCommand()}
-            placeholder="Type here..."
-            className="flex-1 border-none outline-none font-medium text-base"
-            style={{
-              backgroundColor: '#222222',
-              color: '#ffffff',
-              padding: '10px',
-              borderRadius: '5px'
-            }}
-            autoFocus
-          />
-        </div>
+      {/* Input Area */}
+      <div className="flex items-center gap-2 bg-white/5 p-2 rounded border border-white/10 focus-within:border-emerald-500/50 transition-all">
+        <span className="text-emerald-500">$</span>
+        <input 
+          className="bg-transparent border-none outline-none flex-1 text-white placeholder-gray-600"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleCommand()}
+          placeholder="Command Nehira..."
+          autoFocus
+        />
+        <button onClick={handleCommand} disabled={loading}>
+          <Send size={16} className={loading ? "text-gray-500" : "text-emerald-500 hover:text-emerald-400"} />
+        </button>
       </div>
     </div>
   );
