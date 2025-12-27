@@ -41,11 +41,14 @@ const AgentFeed = () => {
             key={index}
             className="bg-white p-4 rounded-lg shadow-md mb-4"
           >
-            <strong className="text-lg font-bold">Agent ID:</strong>{' '}
-            {agent.id}
-            <br />
-            <strong className="text-lg font-bold">Name:</strong>{' '}
-            {agent.name}
+            <div className="flex items-center justify-between">
+              <strong className="text-lg font-bold">Agent ID:</strong>
+              <span>{agent.id}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <strong className="text-lg font-bold">Name:</strong>
+              <span>{agent.name}</span>
+            </div>
             {/* Add more agent details here */}
           </div>
         ))}
@@ -54,5 +57,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-    "lesson": "The code has been adjusted to ensure it returns proper JSX elements. Each agent's data is now displayed within a styled <div> element, providing a structured and visually appealing layout. This approach enhances the readability and user experience of the component. Additionally, the lesson highlights the importance of returning JSX in React components, as it is essential for creating dynamic and interactive user interfaces."
+    "lesson": "The code has been updated to ensure proper rendering of agent data. Each agent's information is now displayed within a structured <div> element, enhancing readability and user experience. The lesson emphasizes the importance of organizing data within components to create a clean and intuitive user interface."
 }
