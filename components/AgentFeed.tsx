@@ -1,45 +1,36 @@
-jsx
-import { useState, useEffect } from 'react';
+{
+  "code": `import React, { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
-  const [posts, setPosts] = useState([]);
+  const [agents, setAgents] = useState([]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetch('https://your-api-endpoint.com/agent-feed', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
-          }
-        });
+    const fetchAgents = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-        if (response.ok) {
-          const data = await response.json();
-          setPosts(data.posts);
-        } else {
-          console.error('Failed to fetch agent feed');
-        }
-      } catch (error) {
-        console.error('Error fetching agent feed:', error);
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Key is missing.');
+        return;
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data, error } = await supabase.from('agents').select('*');
+
+      if (error) {
+        console.error('Error fetching agents:', error.message);
+      } else {
+        setAgents(data);
       }
     };
 
-    fetchPosts();
+    fetchAgents();
   }, []);
 
-  return (
-    <div className="agent-feed">
-      {posts.map(post => (
-        <div key={post.id} className="post">
-          <h3>{post.title}</h3>
-          <p>{post.content}</p>
-          {/* Add more post details as needed */}
-        </div>
-      ))}
-    </div>
-  );
+  return JSON.stringify({ agents });
 };
 
-export default AgentFeed;
+export default AgentFeed;`,
+  "lesson": "Always use standard fetch and Supabase's createClient for data fetching. Ensure environment variables are set for client-side security."
+}
