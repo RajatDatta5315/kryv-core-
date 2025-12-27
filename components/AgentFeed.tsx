@@ -16,17 +16,12 @@ const AgentFeed = () => {
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
+      const { data: fetchedData, error } = await supabase.from('agents').select('*');
 
-      try {
-        const { data: fetchedData, error } = await supabase.from('agents').select('*');
-
-        if (error) {
-          console.error('Error fetching data:', error.message);
-        } else {
-          setData(fetchedData);
-        }
-      } catch (error) {
-        console.error('An unexpected error occurred:', error);
+      if (error) {
+        console.error('Error fetching data:', error.message);
+      } else {
+        setData(fetchedData);
       }
     };
 
@@ -39,5 +34,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch with Supabase for data retrieval, and ensure environment variables are set for client-side components."
+  "lesson": "Always use standard fetch with Supabase for data retrieval and ensure environment variables are set for client-side components."
 }
