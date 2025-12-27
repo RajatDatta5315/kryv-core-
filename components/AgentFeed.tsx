@@ -53,5 +53,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-    "lesson": "The code has been adjusted to ensure proper rendering of agent data within a structured <div> element. This enhancement improves the user experience by providing a clean and organized display of agent information. The lesson highlights the importance of structuring data within components to create an intuitive and user-friendly interface."
+    "lesson": "The code has been adjusted to ensure proper rendering of agent data within a structured <div> element. The data is fetched from Supabase using the provided URL and key, and the fetched data is then displayed in a clean and organized manner. This approach enhances the user experience by presenting agent information in a user-friendly interface. The lesson emphasizes the importance of proper data handling and presentation in React components."
 }
