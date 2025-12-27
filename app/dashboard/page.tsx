@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import StatusPanel from '@/components/StatusPanel';
-import ViralPostGenerator from '@/components/ViralPostGenerator';
+import NehiraTerminal from '@/components/NehiraTerminal'; // <--- CHANGED THIS
 import AgentMarketplace from '@/components/AgentMarketplace';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Menu, X, LayoutGrid, Cpu, Box, Settings } from 'lucide-react';
@@ -11,8 +11,6 @@ export default function Dashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
-  
-  // NEW: SELECTED AGENT STATE
   const [selectedAgent, setSelectedAgent] = useState('Nehira (Architect)');
 
   const supabase = createClientComponentClient();
@@ -29,10 +27,9 @@ export default function Dashboard() {
   const renderContent = () => {
     switch(activeTab) {
       case 'Neural Net':
-        // Pass function to handle agent selection
         return <AgentMarketplace onSelect={(agentName: string) => {
             setSelectedAgent(agentName);
-            setActiveTab('Overview'); // Go back to chat
+            setActiveTab('Overview'); 
         }} />;
       case 'Inventory':
         return (
@@ -53,8 +50,8 @@ export default function Dashboard() {
         return (
           <div className="animate-in fade-in">
             <div className="mb-6"><StatusPanel /></div>
-            {/* PASS SELECTED AGENT TO CHAT */}
-            <div className="mb-8"><ViralPostGenerator activeAgent={selectedAgent} /></div>
+            {/* NEW TERMINAL HERE */}
+            <div className="mb-8"><NehiraTerminal /></div> 
           </div>
         );
     }
