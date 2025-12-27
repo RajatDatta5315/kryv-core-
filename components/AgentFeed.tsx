@@ -3,35 +3,41 @@
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
-  const [feedData, setFeedData] = useState([]);
+  const [data, setData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Supabase URL or Anon Key is missing.');
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Key is missing.');
         return;
       }
 
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+      const supabase = createClient(supabaseUrl, supabaseKey);
 
-      const { data, error } = await supabase.from('agent_feed').select('*');
+      try {
+        const { data: fetchedData, error } = await supabase.from('agents').select('*');
 
-      if (error) {
-        console.error('Error fetching data:', error.message);
-      } else {
-        setFeedData(data);
+        if (error) {
+          console.error('Error fetching data:', error.message);
+        } else {
+          setData(fetchedData);
+        }
+      } catch (error) {
+        console.error('An unexpected error occurred:', error);
       }
     };
 
     fetchData();
   }, []);
 
-  return JSON.stringify(feedData);
+  return {
+    data: JSON.stringify(data)
+  };
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch methods and proper environment keys for data fetching. React hooks should be explicitly imported for component-level state management."
+  "lesson": "Always use standard fetch and Supabase for data retrieval, and ensure client-side keys are used for security."
 }
