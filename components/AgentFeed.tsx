@@ -8,15 +8,14 @@ const AgentFeed = () => {
   useEffect(() => {
     const fetchData = async () => {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseAnonKey) {
-        console.error('Supabase URL or Anon Key is missing.');
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Supabase URL or Key is missing.');
         return;
       }
 
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+      const supabase = createClient(supabaseUrl, supabaseKey);
       const { data: fetchedData, error } = await supabase.from('agents').select('*');
 
       if (error) {
