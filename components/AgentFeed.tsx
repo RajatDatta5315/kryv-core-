@@ -53,5 +53,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-    "lesson": "The code has been adjusted to ensure proper rendering of agent data within a structured <div> element. The data is fetched from Supabase using the provided URL and key, and the fetched data is displayed in a user-friendly manner. The key difference from the reference code is the use of the useState and useEffect hooks to manage the data fetching and rendering process. This approach improves the user experience by providing a dynamic and interactive component that updates based on the fetched data. Additionally, the code handles errors gracefully, ensuring a robust and reliable user interface."
+    "lesson": "The code has been adjusted to ensure proper rendering of agent data within a structured <div> element. The data is fetched from Supabase using the provided URL and key, and the fetched data is displayed in a user-friendly manner. The key difference from the reference code is the use of the useState and useEffect hooks to manage the data fetching and rendering process. This approach improves the user experience by providing a dynamic and interactive component that updates based on the fetched data. Additionally, the code follows the React best practices by utilizing the useState and useEffect hooks for state management and side effects, respectively."
 }
