@@ -16,24 +16,28 @@ export default function NehiraTerminal() {
     setLoading(true);
 
     try {
-      // 🟢 THE CRITICAL FIX: Direct Link to Nehira Brain
-      const res = await fetch('https://nehira.space/api/chat', {
+      // 🟢 TUNNEL CONNECTION (Local Proxy)
+      const res = await fetch('/api/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: cmd, agentName: 'Nehira (Architect)' })
       });
 
-      if (!res.ok) throw new Error(`Status: ${res.status}`);
       const data = await res.json();
-      setLogs(prev => [...prev, `> NEHIRA: ${data.response}`]);
+      
+      // Error Handling jo screen pe dikhega
+      if (data.response && (data.response.includes('🔴') || data.response.includes('ERROR'))) {
+          setLogs(prev => [...prev, `> ${data.response}`]);
+      } else {
+          setLogs(prev => [...prev, `> NEHIRA: ${data.response}`]);
+      }
 
     } catch (e: any) {
-      setLogs(prev => [...prev, `> ERROR: Connection Failed (${e.message}). Check nehira.space status.`]);
+      setLogs(prev => [...prev, `> CRITICAL FAILURE: ${e.message}`]);
     }
     setLoading(false);
   };
 
-  // Auto-scroll to bottom
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [logs]);
 
   return (
@@ -55,7 +59,7 @@ export default function NehiraTerminal() {
       {/* Logs Area */}
       <div className="flex-1 overflow-y-auto space-y-2 mb-4 scrollbar-hide text-gray-300">
         {logs.map((log, i) => (
-          <div key={i} className={`break-words ${log.startsWith('> USER') ? 'text-cyan-400' : log.startsWith('> ERROR') ? 'text-red-500' : 'text-emerald-100'}`}>
+          <div key={i} className={`break-words ${log.startsWith('> USER') ? 'text-cyan-400' : log.includes('🔴') || log.includes('ERROR') ? 'text-red-500' : 'text-emerald-100'}`}>
             {log}
           </div>
         ))}
