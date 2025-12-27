@@ -1,5 +1,5 @@
 {
-  "code": `import React, { useEffect, useState } from 'react';
+  "code": `import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -42,5 +42,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch and Supabase's createClient for data fetching. Ensure environment variables are set for client-side components."
+  "lesson": "Ensure the correct imports are used and that the code follows the React component structure, returning JSX. Also, remember to use the correct environment variables for client-side components."
 }
