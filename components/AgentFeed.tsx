@@ -1,5 +1,5 @@
 {
-    "code": `import React, { useState, useEffect } from 'react';
+  "code": `import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -16,12 +16,17 @@ const AgentFeed = () => {
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { data: fetchedData, error } = await supabase.from('agents').select('*');
 
-      if (error) {
-        console.error('Error fetching data:', error.message);
-      } else {
-        setData(fetchedData);
+      try {
+        const { data: fetchedData, error } = await supabase.from('agents').select('*');
+
+        if (error) {
+          console.error('Error fetching data:', error.message);
+        } else {
+          setData(fetchedData);
+        }
+      } catch (error) {
+        console.error('An unexpected error occurred:', error);
       }
     };
 
@@ -34,5 +39,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-    "lesson": "Always use standard fetch with Supabase for data retrieval and ensure environment variables are set for client-side components."
+  "lesson": "Always use standard fetch and Supabase's createClient for data fetching. Ensure environment variables are set for client-side components."
 }
