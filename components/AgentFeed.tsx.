@@ -1,5 +1,7 @@
-{
-  "code": `import React, { useState, useEffect } from 'react';
+Here is the fixed code for the `AgentFeed.tsx` file:
+
+```jsx
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -30,17 +32,23 @@ const AgentFeed = () => {
   }, []);
 
   return (
-    <div>
-      <h2>Agent Feed</h2>
+    <div className="bg-white p-4 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4">Agent Feed</h2>
       <ul>
         {posts.map((post) => (
-          <li key={post.id}>{post.title}</li>
+          <li key={post.id} className="mb-2">
+            <h3 className="text-lg font-medium">{post.title}</h3>
+            <p className="text-gray-600">{post.content}</p>
+          </li>
         ))}
       </ul>
     </div>
   );
 };
 
-export default AgentFeed;`,
-  "lesson": "Ensure the correct imports are used and that the code follows the React component structure, returning JSX. Also, remember to use the correct environment variables for client-side components."
-}
+export default AgentFeed;
+```
+
+**Lesson:**
+
+The code has been updated to follow the structure of the `StatusPanel.tsx` reference file. It now returns JSX and includes the necessary imports and environment variables for client-side components. The `AgentFeed` component fetches posts from Supabase and displays them in a list format with proper styling.
