@@ -33,11 +33,13 @@ const AgentFeed = () => {
     fetchData();
   }, []);
 
-  return {
-    data: JSON.stringify(data)
-  };
+  return (
+    <div>
+      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+    </div>
+  );
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch with Supabase for data retrieval and ensure environment variables are set for client-side components."
+  "lesson": "Ensure that React components return JSX elements and not JSON objects. Use the useState hook to manage state and useEffect for side effects."
 }
