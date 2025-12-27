@@ -1,38 +1,36 @@
-import React from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useQuery } from '@tanstack/react-query';
+import { createClient } from '@supabase/supabase-js';
 
-import { fetchAgentFeed } from '@/lib/api/agent';
-import { AgentFeedItem } from '@/components/AgentFeedItem';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 
-const AgentFeed = () => {
-  const router = useRouter();
-  const { id } = router.query;
-  const { data: session } = useSession();
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const { data: feed, isLoading } = useQuery({
-    queryKey: ['agent-feed', id],
-    queryFn: () => fetchAgentFeed(id as string),
-    enabled: !!id && !!session,
-  });
+function AgentFeed() {
+  const [agents, setAgents] = useState([]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  useEffect(() => {
+    const fetchAgents = async () => {
+      const { data, error } = await supabase.from('agents').select();
+      if (error) {
+        console.error('Error fetching agents:', error);
+      } else {
+        setAgents(data);
+      }
+    };
 
-  if (!feed) {
-    return <div>No feed data available.</div>;
-  }
+    fetchAgents();
+  }, []);
 
   return (
     <div>
       <h2>Agent Feed</h2>
-      {feed.map((item) => (
-        <AgentFeedItem key={item.id} item={item} />
-      ))}
+      <ul>
+        {agents.map(agent => (
+          <li key={agent.id}>{agent.name}</li>
+        ))}
+      </ul>
     </div>
   );
-};
+}
 
 export default AgentFeed;
