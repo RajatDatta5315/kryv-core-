@@ -1,5 +1,5 @@
 {
-  "code": `import React, { useState, useEffect } from 'react';
+  "code": `import React, { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const AgentFeed = () => {
@@ -11,7 +11,7 @@ const AgentFeed = () => {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       if (!supabaseUrl || !supabaseKey) {
-        console.error('Supabase URL or Key is missing.');
+        console.error('Supabase URL or Anon Key is missing.');
         return;
       }
 
@@ -34,5 +34,5 @@ const AgentFeed = () => {
 };
 
 export default AgentFeed;`,
-  "lesson": "Always use standard fetch with Supabase for data retrieval and ensure environment variables are set for client-side components."
+  "lesson": "Always use standard fetch methods and Supabase client for data fetching. Ensure environment variables are set for client-side components."
 }
