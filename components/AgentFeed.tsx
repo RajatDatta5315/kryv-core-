@@ -35,11 +35,23 @@ const AgentFeed = () => {
 
   return (
     <div>
-      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+      {data && (
+        <pre>
+          {data.map((agent, index) => (
+            <div key={index}>
+              <strong>Agent ID:</strong> {agent.id}
+              <br />
+              <strong>Name:</strong> {agent.name}
+              <br />
+              {/* Add more agent details here */}
+            </div>
+          ))}
+        </pre>
+      )}
     </div>
   );
 };
 
 export default AgentFeed;`,
-  "lesson": "Ensure that React components return JSX elements and not JSON objects. Use the useState hook to manage state and useEffect for side effects."
+  "lesson": "Ensure that React components return JSX elements. In this case, we're rendering agent data within a <pre> block for readability."
 }
