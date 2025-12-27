@@ -35,27 +35,23 @@ const AgentFeed = () => {
 
   return (
     <div>
-      {data &&
-        data.map((agent, index) => (
-          <div
-            key={index}
-            className="bg-white p-4 rounded-lg shadow-md mb-4"
-          >
-            <div className="flex items-center justify-between">
-              <strong className="text-lg font-bold">Agent ID:</strong>
-              <span>{agent.id}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <strong className="text-lg font-bold">Name:</strong>
-              <span>{agent.name}</span>
-            </div>
-            {/* Add more agent details here */}
+      {data && data.map((agent, index) => (
+        <div key={index} className="bg-white p-4 rounded-lg shadow-md mb-4">
+          <div className="flex items-center justify-between">
+            <strong className="text-lg font-bold">Agent ID:</strong>
+            <span>{agent.id}</span>
           </div>
-        ))}
+          <div className="flex items-center justify-between">
+            <strong className="text-lg font-bold">Name:</strong>
+            <span>{agent.name}</span>
+          </div>
+          {/* Add more agent details here */}
+        </div>
+      ))}
     </div>
   );
 };
 
 export default AgentFeed;`,
-    "lesson": "The code has been updated to ensure proper rendering of agent data. Each agent's information is now displayed within a structured <div> element, enhancing readability and user experience. The lesson emphasizes the importance of organizing data within components to create a clean and intuitive user interface."
+    "lesson": "The code has been adjusted to ensure proper rendering of agent data within a structured <div> element. This enhancement improves the user experience by providing a clean and organized display of agent information. The lesson highlights the importance of structuring data within components to create an intuitive and user-friendly interface."
 }
