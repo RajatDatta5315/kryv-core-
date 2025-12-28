@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 
 export default function QuantumDashboard() {
   const [status, setStatus] = useState("IDLE");
-  const [result, setResult] = useState(null);
+  // FIX: Added <any> so TypeScript doesn't cry about data types
+  const [result, setResult] = useState<any>(null);
 
   const runSimulation = async () => {
     setStatus("CONNECTING TO NEHIRA QUANTUM CORE...");
@@ -64,3 +65,4 @@ export default function QuantumDashboard() {
     </div>
   );
 }
+
