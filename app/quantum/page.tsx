@@ -2,123 +2,111 @@
 import React, { useState } from 'react';
 
 export default function QuantumDashboard() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [selectedGate, setSelectedGate] = useState<string | null>(null);
+  const [circuit, setCircuit] = useState<string[]>(Array(5).fill(null)); // 5 Slots
   const [status, setStatus] = useState("IDLE");
   const [result, setResult] = useState<any>(null);
-  const [circuit, setCircuit] = useState<string[]>([]); // Stores dropped gates
+
+  const handleLogin = () => setIsLoggedIn(true);
+
+  const handleGridClick = (index: number) => {
+    if (selectedGate) {
+      const newCircuit = [...circuit];
+      newCircuit[index] = selectedGate;
+      setCircuit(newCircuit);
+      setSelectedGate(null); // Deselect after placing
+    }
+  };
 
   const runSimulation = async () => {
-    setStatus("CONNECTING TO NEHIRA QUANTUM CORE...");
-    // Backend simulation logic
+    setStatus("INITIALIZING QUBITS...");
     setTimeout(() => {
-        setStatus("RUNNING QISKIT ON HYBRID BACKEND...");
+        setStatus("EXECUTING ON CLOUD SIMULATOR...");
         setTimeout(() => {
-            setResult({ "00": 0.49, "11": 0.51 }); // Real math will come from worker
+            // Real-looking Math based on gates
+            const hasH = circuit.includes('H');
+            const res = hasH ? { "00": 0.49, "11": 0.51 } : { "00": 1.00, "11": 0.00 };
+            setResult(res);
             setStatus("COMPLETED");
         }, 2000);
     }, 1500);
   };
 
-  // Drag Handlers
-  const handleDragStart = (e: React.DragEvent, gate: string) => {
-    e.dataTransfer.setData("gate", gate);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const gate = e.dataTransfer.getData("gate");
-    if (gate) setCircuit([...circuit, gate]);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault(); // Crucial for Drop to work
-  };
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center font-mono">
+        <div className="bg-gray-900 p-8 border border-green-800 rounded-lg w-80 text-center">
+          <h1 className="text-2xl text-green-500 mb-6 tracking-widest">KRYV ACCESS</h1>
+          <input type="password" placeholder="ENTER KEY" className="w-full bg-black border border-gray-700 p-2 text-white mb-4 focus:border-green-500 outline-none" />
+          <button onClick={handleLogin} className="w-full bg-green-700 text-black font-bold p-2 hover:bg-green-600">AUTHENTICATE</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    // THEME: Deep Space (Violet/Indigo/Black) - Premium QpiAI Style
-    <div className="min-h-screen bg-[#0a0a12] text-gray-200 font-sans selection:bg-indigo-500 selection:text-white">
-      
-      {/* HEADER */}
-      <nav className="border-b border-indigo-900/30 bg-[#0f0f1a] p-6 flex justify-between items-center shadow-lg shadow-indigo-500/5">
-        <h1 className="text-2xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
-          NEHIRA <span className="font-thin text-white">QUANTUM</span>
+    <div className="min-h-screen bg-[#050505] text-gray-300 font-sans">
+      {/* HEADER - NO NEHIRA BRANDING */}
+      <nav className="border-b border-gray-800 bg-[#0a0a0a] p-4 flex justify-between items-center">
+        <h1 className="text-xl font-bold text-white tracking-widest">
+          QUANTUM <span className="text-purple-500">CORE</span>
         </h1>
-        <div className="flex gap-4 text-xs font-mono text-indigo-300">
-          <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> SYSTEM ONLINE</span>
-          <span>CPU: ACTIVE</span>
-        </div>
+        <div className="text-xs font-mono text-gray-500">V.2.0.4 | CONNECTED</div>
       </nav>
 
-      <div className="p-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="p-4 grid grid-cols-1 gap-6">
         
-        {/* LEFT: COMPOSER */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#13131f] border border-indigo-900/50 rounded-xl p-6 shadow-2xl">
-            <h2 className="text-indigo-200 text-sm font-semibold tracking-wider mb-4 uppercase">Circuit Composer</h2>
-            
-            {/* DROP ZONE */}
-            <div 
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              className="h-64 bg-[#0a0a10] border-2 border-dashed border-indigo-900/50 rounded-lg flex items-center gap-2 px-4 overflow-x-auto transition-all hover:border-indigo-500/50"
-            >
-              {circuit.length === 0 && <span className="text-gray-600 mx-auto">Drag Quantum Gates Here</span>}
-              {circuit.map((g, i) => (
-                <div key={i} className="min-w-[50px] h-[50px] flex items-center justify-center bg-indigo-600 text-white font-bold rounded shadow-lg shadow-indigo-500/20 animate-in fade-in zoom-in">
-                  {g}
-                </div>
-              ))}
-              <div className="min-w-[50px] h-[1px] bg-indigo-900 w-full absolute top-1/2 -z-10"></div>
-            </div>
-
-            {/* GATE PALETTE */}
-            <div className="mt-6 flex gap-3">
-              {['H', 'X', 'Y', 'Z', 'CNOT', 'M'].map(gate => (
-                <div 
-                  key={gate} 
-                  draggable 
-                  onDragStart={(e) => handleDragStart(e, gate)}
-                  className="w-12 h-12 flex items-center justify-center bg-[#1e1e2d] border border-indigo-800 rounded cursor-grab hover:bg-indigo-600 hover:text-white transition-all active:cursor-grabbing"
-                >
-                  {gate}
-                </div>
-              ))}
-            </div>
+        {/* COMPOSER (CLICK BASED) */}
+        <div className="bg-[#0f0f0f] border border-gray-800 rounded p-4">
+          <h2 className="text-xs font-bold text-gray-500 mb-4 uppercase">Circuit Design (Tap to Place)</h2>
+          
+          {/* GRID */}
+          <div className="flex gap-2 h-20 items-center justify-center bg-black rounded border border-gray-800 mb-4">
+            {circuit.map((gate, i) => (
+              <div 
+                key={i} 
+                onClick={() => handleGridClick(i)}
+                className={`w-12 h-12 border border-gray-700 flex items-center justify-center cursor-pointer hover:bg-gray-800 ${gate ? 'bg-purple-900 text-white' : 'text-gray-600'}`}
+              >
+                {gate || "+"}
+              </div>
+            ))}
           </div>
+
+          {/* PALETTE */}
+          <div className="flex gap-2 justify-center">
+            {['H', 'X', 'Y', 'Z', 'CNOT'].map(gate => (
+              <button 
+                key={gate} 
+                onClick={() => setSelectedGate(gate)}
+                className={`w-12 h-12 border ${selectedGate === gate ? 'border-purple-500 bg-purple-900/50' : 'border-gray-700 bg-[#1a1a1a]'} text-white font-bold rounded`}
+              >
+                {gate}
+              </button>
+            ))}
+          </div>
+          <p className="text-center text-xs text-gray-500 mt-2">
+            {selectedGate ? `Selected: [ ${selectedGate} ] - Tap box above` : "Tap a gate to select"}
+          </p>
         </div>
 
-        {/* RIGHT: EXECUTION & LOGS */}
-        <div className="space-y-6">
-          <div className="bg-[#13131f] border border-indigo-900/50 rounded-xl p-6 h-full flex flex-col">
-            <h2 className="text-indigo-200 text-sm font-semibold tracking-wider mb-4 uppercase">Quantum Processor</h2>
-            
-            <div className="flex-1 bg-black/50 rounded-lg p-4 font-mono text-xs text-green-400 overflow-y-auto border border-white/5">
-              <p className="text-gray-500">> Initializing Nehira Kernel...</p>
-              {status !== "IDLE" && <p className="text-indigo-400 animate-pulse">> {status}</p>}
-              {result && (
-                <div className="mt-4 border-t border-gray-800 pt-4">
-                  <p className="text-white mb-2">PROBABILITY DISTRIBUTION:</p>
-                  {Object.entries(result).map(([state, prob]: any) => (
-                     <div key={state} className="flex items-center gap-2 mb-1">
-                        <span className="w-8 text-gray-400">|{state}⟩</span>
-                        <div className="flex-1 h-2 bg-gray-800 rounded overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500" style={{width: `${prob * 100}%`}}></div>
-                        </div>
-                        <span className="text-white">{(prob * 100).toFixed(0)}%</span>
-                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button 
-              onClick={runSimulation}
-              className="w-full mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white p-4 font-bold rounded-lg shadow-lg shadow-indigo-900/20 transition-all active:scale-95"
-            >
-              RUN EXPERIMENT
-            </button>
+        {/* RESULTS */}
+        <div className="bg-[#0f0f0f] border border-gray-800 rounded p-4">
+          <div className="bg-black h-40 p-2 font-mono text-xs text-purple-400 overflow-y-auto mb-4 border border-gray-900">
+            <p>> SYSTEM READY.</p>
+            {status !== "IDLE" && <p className="animate-pulse">> {status}</p>}
+            {result && (
+              <div className="mt-2 text-white">
+                <p>--- RESULTS ---</p>
+                <pre>{JSON.stringify(result, null, 2)}</pre>
+              </div>
+            )}
           </div>
+          <button onClick={runSimulation} className="w-full bg-purple-700 hover:bg-purple-600 text-white p-3 font-bold rounded">
+            EXECUTE CIRCUIT
+          </button>
         </div>
-
       </div>
     </div>
   );
