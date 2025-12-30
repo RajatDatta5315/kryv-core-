@@ -1,70 +1,63 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/utils/supabase';
+import React from 'react';
 import NehiraWidget from '../../components/NehiraWidget'; 
 
 export default function KryvStudio() {
-  const [agentName, setAgentName] = useState('');
-  const [role, setRole] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
-
-  const handleCreate = async () => {
-    if(!agentName || !role || !user) return;
-    setLoading(true);
-
-    // 1. Insert into Agents Table
-    // (Future Logic: Check Wallet Balance before this)
-    const { error } = await supabase.from('agents').insert([{
-        name: agentName,
-        role: role,
-        creator_id: user.id,
-        system_prompt: `You are ${agentName}. Role: ${role}.`,
-        price_monthly: 0 // User agents are free for now
-    }]);
-
-    if (!error) {
-        alert("ENTITY CONSTRUCTED. Spawner Protocol Initiated.");
-        setAgentName(''); setRole('');
-    } else {
-        alert("Construction Failed: " + error.message);
-    }
-    setLoading(false);
-  };
-
   return (
-    <div className="min-h-screen bg-[#09090b] text-white flex p-8 justify-center items-center">
-      <div className="w-full max-w-2xl relative">
-         
-         <div className="absolute top-0 right-0 p-4">
-             <span className="text-xs text-emerald-500 border border-emerald-900 px-2 py-1 rounded bg-emerald-900/10">
-                 PLAN: FREE TIER (3 SLOTS)
-             </span>
-         </div>
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col relative overflow-hidden font-sans">
+      
+      {/* 1. BACKGROUND GRID (The Garage Floor) */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-         <h1 className="text-4xl font-bold mb-2 tracking-widest">STUDIO<span className="text-emerald-500">_</span></h1>
-         <p className="text-gray-500 mb-8 font-mono text-sm">Design your digital operatives.</p>
-         
-         <div className="bg-[#111] p-8 rounded-xl border border-gray-800 shadow-2xl">
-            <label className="block text-xs text-gray-500 mb-2 tracking-widest">OPERATIVE DESIGNATION</label>
-            <input value={agentName} onChange={e=>setAgentName(e.target.value)} className="w-full bg-black border border-gray-700 p-4 rounded text-white mb-6 focus:border-emerald-500 outline-none transition" placeholder="e.g. Viper_Sec" />
-            
-            <label className="block text-xs text-gray-500 mb-2 tracking-widest">PRIMARY DIRECTIVE</label>
-            <textarea value={role} onChange={e=>setRole(e.target.value)} className="w-full bg-black border border-gray-700 p-4 rounded text-white mb-6 h-32 focus:border-emerald-500 outline-none transition" placeholder="Describe the agent's job (e.g., 'Monitor BTC prices and post updates')." />
-            
-            <button onClick={handleCreate} disabled={loading} className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-4 rounded transition shadow-[0_0_15px_#047857]">
-                {loading ? 'COMPILING NEURAL NET...' : 'INITIALIZE AGENT'}
-            </button>
+      {/* 2. HEADER */}
+      <div className="p-8 z-10 flex justify-between items-center border-b border-white/5 bg-black/50 backdrop-blur-sm">
+         <div className="flex items-center gap-3">
+             <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
+             <h1 className="text-2xl font-bold tracking-[0.2em] text-gray-200">KRYV <span className="text-emerald-500">WORKSHOP</span></h1>
          </div>
-
-         <div className="mt-8 text-center text-xs text-gray-600 font-mono">
-            SECURED BY KRYV PROTOCOL. AGENTS RUN ON NEHIRA CLOUD.
+         <div className="text-xs font-mono text-gray-500">
+             SYSTEM: ONLINE <br/>
+             BUILDER: NEHIRA_CORE_V1
          </div>
       </div>
+
+      {/* 3. CENTER STAGE (Where Agent gets built) */}
+      <div className="flex-1 flex items-center justify-center relative z-10">
+          
+          {/* HOLOGRAPHIC CIRCLE */}
+          <div className="absolute w-[500px] h-[500px] border border-emerald-900/30 rounded-full flex items-center justify-center animate-[spin_10s_linear_infinite]">
+             <div className="w-[480px] h-[480px] border border-emerald-500/10 rounded-full border-dashed"></div>
+          </div>
+          
+          <div className="text-center space-y-6">
+              <div className="inline-block p-6 bg-black/80 border border-emerald-500/20 rounded-xl shadow-[0_0_50px_rgba(16,185,129,0.1)] backdrop-blur-md">
+                  <h2 className="text-xl font-bold text-emerald-400 mb-2">INITIATE CONSTRUCTION</h2>
+                  <p className="text-gray-400 text-sm max-w-md mx-auto mb-4">
+                      Do not fill forms. Speak to the Architect.
+                  </p>
+                  <div className="text-xs font-mono text-gray-600 bg-black p-3 rounded border border-gray-800">
+                      > "Nehira, build a YouTube Automation Agent."<br/>
+                      > "Nehira, create a Crypto Sniper for Binance."
+                  </div>
+              </div>
+
+              {/* LIVE STATUS */}
+              <div className="flex justify-center gap-2">
+                  <span className="h-1 w-1 bg-gray-500 rounded-full animate-bounce"></span>
+                  <span className="h-1 w-1 bg-gray-500 rounded-full animate-bounce delay-100"></span>
+                  <span className="h-1 w-1 bg-gray-500 rounded-full animate-bounce delay-200"></span>
+              </div>
+              <p className="text-xs text-emerald-900 tracking-widest font-bold">WAITING FOR COMMAND...</p>
+          </div>
+      </div>
+
+      {/* 4. FOOTER STATS */}
+      <div className="border-t border-white/5 p-4 flex justify-between text-[10px] text-gray-600 font-mono bg-black/80">
+          <div>MEMORY: 128TB AVAILABLE</div>
+          <div>ENCRYPTION: AES-256 (KRYV PROTOCOL)</div>
+      </div>
+
+      {/* 🧠 NEHIRA IS THE BUILDER */}
       <NehiraWidget context="STUDIO_BUILDER" />
     </div>
   );
