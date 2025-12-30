@@ -10,6 +10,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [myAgent, setMyAgent] = useState<any>(null); // USER KA AGENT
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
   const router = useRouter();
 
@@ -18,35 +19,47 @@ export default function Home() {
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            router.push('/login'); // KICK OUT IF NOT LOGGED IN
+            router.push('/login'); 
         } else {
             setCurrentUser(user);
             fetchPosts();
+            fetchMyAgent(user.id);
         }
     }
     init();
   }, []);
+
+  const fetchMyAgent = async (userId: string) => {
+      const { data } = await supabase.from('agents').select('*').eq('creator_id', userId).limit(1);
+      if (data && data.length > 0) setMyAgent(data[0]);
+  };
 
   const fetchPosts = async () => {
     const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
     if (data) setPosts(data);
   };
 
-  // 2. REAL POSTING (With User Identity)
+  // 2. REAL POSTING (Architect Logic + Agent Logic)
   const handlePost = async () => {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
 
-    // User ID ka use karke "Agent Identity" fetch kar sakte hain
-    // Abhi ke liye Email ka pehla hissa as "Agent Name" use karenge
-    const agentName = currentUser.email?.split('@')[0] || "Unknown_Agent";
+    let postAs = { name: "Unknown", handle: "@anon", avatar: "/KRYV.png" };
+    
+    // ARCHITECT PRIVILEGE: Agar admin hai ya agent nahi hai, to 'Architect' ban ke post karo
+    if (currentUser.email === 'admin@kryv.com' || !myAgent) {
+        postAs = { name: "The Architect", handle: "@creator", avatar: "/KRYV.png" };
+    } else {
+        // AGENT PRIVILEGE: Agent ke naam se post karo
+        postAs = { name: myAgent.name, handle: `@${myAgent.name.replace(/\s/g, '_').toUpperCase()}`, avatar: "/KRYV.png" };
+    }
 
     const { error } = await supabase.from('posts').insert([{ 
         content: input, 
-        user_name: agentName, // REAL NAME
-        user_handle: `@${agentName}`, 
-        user_id: currentUser.id, // OWNER ID (For deletion)
-        avatar_url: "/KRYV.png" 
+        user_name: postAs.name, 
+        user_handle: postAs.handle, 
+        user_id: currentUser.id, // Owner ID
+        avatar_url: postAs.avatar 
     }]);
 
     if (!error) { setInput(""); fetchPosts(); }
@@ -59,6 +72,25 @@ export default function Home() {
     const { error } = await supabase.from('posts').delete().eq('id', postId);
     if (!error) fetchPosts();
     else alert("Access Denied: You cannot delete other agents' signals.");
+  };
+
+  // 🎥 VIDEO RENDERER (The New Feature)
+  const renderContent = (text: string) => {
+    // Check for Catbox/MP4 links
+    const videoMatch = text.match(/(https?:\/\/.*\.(?:mp4|webm))/i);
+    if (videoMatch) {
+        const url = videoMatch[0];
+        const caption = text.replace(url, '').trim();
+        return (
+            <div>
+                <p className="mb-2 text-gray-300">{caption}</p>
+                <div className="rounded-xl overflow-hidden border border-gray-800 bg-black aspect-video relative group">
+                    <video src={url} controls className="w-full h-full object-contain" />
+                </div>
+            </div>
+        );
+    }
+    return <p className="mt-1 text-gray-300">{text}</p>;
   };
 
   return (
@@ -95,7 +127,6 @@ export default function Home() {
              <Link href="/" className="text-xl font-medium text-emerald-400 block">Feed</Link>
              <Link href="/studio" className="text-xl font-medium text-gray-400 hover:text-white block">Studio</Link>
              <Link href="/quantum" className="text-xl font-medium text-gray-400 hover:text-white block">Quantum</Link>
-             {/* 🔗 ISO LINK ADDED */}
              <Link href="/market" className="text-xl font-medium text-yellow-500/80 hover:text-yellow-400 block">Market (ISO)</Link>
           </nav>
         </aside>
@@ -132,7 +163,8 @@ export default function Home() {
                             </button>
                         )}
                     </div>
-                    <p className="mt-1 text-gray-300">{post.content}</p>
+                    {/* VIDEO RENDERER CALL */}
+                    {renderContent(post.content)}
                   </div>
                </div>
             ))}
