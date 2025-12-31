@@ -9,27 +9,34 @@ export default function AlphaParadoxQc() {
   const [result, setResult] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedGate, setSelectedGate] = useState<string | null>(null);
-  const [circuit, setCircuit] = useState<string[]>(Array(5).fill(null)); 
   const router = useRouter();
+
+  // 3 Rows, 5 Columns each (Total 15 slots)
+  const [rows, setRows] = useState([
+    Array(5).fill(null), // Row 1
+    Array(5).fill(null), // Row 2
+    Array(5).fill(null)  // Row 3
+  ]);
 
   useEffect(() => { checkUser(); }, []);
 
   const checkUser = async () => {
-    // Check if user has a session
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
         setIsAuthenticated(true);
     } else {
-        // Redirect to Login if not logged in
         router.push('/login');
     }
   };
 
-  const handleGridClick = (index: number) => {
+  const handleGridClick = (rowIndex: number, colIndex: number) => {
     if (selectedGate) {
-      const newCircuit = [...circuit];
-      newCircuit[index] = selectedGate;
-      setCircuit(newCircuit);
+      const newRows = [...rows];
+      // Copy the specific row array
+      newRows[rowIndex] = [...newRows[rowIndex]];
+      // Set gate
+      newRows[rowIndex][colIndex] = selectedGate;
+      setRows(newRows);
       setSelectedGate(null); 
     }
   };
@@ -37,8 +44,11 @@ export default function AlphaParadoxQc() {
   const runSimulation = () => {
     setStatus("TUNNELING...");
     setTimeout(() => {
-        // Fake Quantum Math based on gates
-        const hasH = circuit.includes('H');
+        // Logic same rakha hai, bas ab teeno rows check karega
+        // Flatten array to check if 'H' exists anywhere in the 3 rows
+        const allGates = rows.flat();
+        const hasH = allGates.includes('H');
+        
         const res = hasH ? { "00": 49, "11": 51 } : { "00": 100, "11": 0 };
         setResult(res);
         setStatus("COMPLETED");
@@ -61,16 +71,32 @@ export default function AlphaParadoxQc() {
 
       <div className="p-4 max-w-4xl mx-auto mt-10 grid gap-8">
         
-        {/* 1. GATES COMPOSER (Wapas Aa Gaya) */}
+        {/* 1. GATES COMPOSER (UPDATED: 3 ROWS) */}
         <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6">
-            <h2 className="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Circuit Design</h2>
-            <div className="flex gap-4 h-20 items-center justify-center bg-black rounded-lg border border-gray-900 mb-6">
-            {circuit.map((gate, i) => (
-              <div key={i} onClick={() => handleGridClick(i)} className={`w-14 h-14 border border-gray-800 rounded flex items-center justify-center cursor-pointer hover:border-purple-500 transition ${gate ? 'bg-purple-900/20 text-purple-400 border-purple-500' : 'text-gray-700'}`}>
-                {gate || "+"}
-              </div>
-            ))}
+            <h2 className="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Circuit Design (Multi-Qubit)</h2>
+            
+            <div className="flex flex-col gap-4 bg-black rounded-lg border border-gray-900 p-4 mb-6">
+              {rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex gap-4 items-center justify-center relative">
+                  {/* Line passing through */}
+                  <div className="absolute w-full h-[1px] bg-gray-800 z-0"></div>
+                  
+                  {/* Qubit Label */}
+                  <div className="text-xs text-gray-600 font-mono w-6 text-right absolute left-0">q[{rowIndex}]</div>
+
+                  {row.map((gate: any, colIndex: number) => (
+                    <div 
+                      key={colIndex} 
+                      onClick={() => handleGridClick(rowIndex, colIndex)} 
+                      className={`w-14 h-14 border z-10 relative bg-black/80 rounded flex items-center justify-center cursor-pointer hover:border-purple-500 transition ${gate ? 'bg-purple-900/20 text-purple-400 border-purple-500' : 'border-gray-800 text-gray-700'}`}
+                    >
+                      {gate || "+"}
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
+
             <div className="flex gap-3 justify-center">
             {['H', 'X', 'Y', 'Z', 'CNOT'].map(gate => (
               <button key={gate} onClick={() => setSelectedGate(gate)} className={`w-12 h-12 border ${selectedGate === gate ? 'border-purple-500 bg-purple-900' : 'border-gray-800 bg-[#111]'} text-white font-bold rounded hover:bg-gray-800 transition`}>
@@ -80,7 +106,7 @@ export default function AlphaParadoxQc() {
             </div>
         </div>
 
-        {/* 2. GRAPH RESULTS (New Feature) */}
+        {/* 2. GRAPH RESULTS (UNCHANGED) */}
         {result && (
             <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-6 shadow-2xl">
                 <h3 className="text-xs font-bold text-purple-400 mb-4 tracking-widest">PROBABILITY GRAPH</h3>
