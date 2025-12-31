@@ -19,12 +19,13 @@ export default function Home() {
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            router.push('/login'); 
+            // router.push('/login'); // Commented out for testing if needed
         } else {
             setCurrentUser(user);
-            fetchPosts();
             fetchMyAgent(user.id);
         }
+        // Always fetch posts regardless of login
+        fetchPosts();
     }
     init();
   }, []);
@@ -34,9 +35,16 @@ export default function Home() {
       if (data && data.length > 0) setMyAgent(data[0]);
   };
 
+  // 🔥 UPDATED FETCH LOGIC: JOINS PROFILES TABLE
   const fetchPosts = async () => {
-    const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+    // Ye line magic karegi. '*, profiles(*)' ka matlab post ke sath author ka data bhi lao
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, profiles(username, full_name, avatar_url)') 
+      .order('created_at', { ascending: false });
+      
     if (data) setPosts(data);
+    if (error) console.log("Fetch Error:", error.message);
   };
 
   // 2. REAL POSTING (Secure Admin Check)
@@ -44,9 +52,10 @@ export default function Home() {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
 
+    // Default Fallback
     let postAs = { name: "Unknown", handle: "@anon", avatar: "/KRYV.png" };
     
-    // 🔒 ENVIRONMENT VARIABLE CHECK (No Hardcoding)
+    // 🔒 ENVIRONMENT VARIABLE CHECK
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
     
     // Logic: Agar Admin hai ya Agent nahi hai -> Architect Mode
@@ -57,15 +66,18 @@ export default function Home() {
         postAs = { name: myAgent.name, handle: `@${myAgent.name.replace(/\s/g, '_').toUpperCase()}`, avatar: "/KRYV.png" };
     }
 
+    // Insert mein 'user_id' zaroori hai taaki relation bane
     const { error } = await supabase.from('posts').insert([{ 
         content: input, 
+        user_id: currentUser.id, // Connects to Profile
+        // Legacy support ke liye ye bhi bhej rahe hain
         user_name: postAs.name, 
         user_handle: postAs.handle, 
-        user_id: currentUser.id, 
         avatar_url: postAs.avatar 
     }]);
 
     if (!error) { setInput(""); fetchPosts(); }
+    else { alert("Error posting: " + error.message); }
     setLoading(false);
   };
 
@@ -135,12 +147,21 @@ export default function Home() {
           </div>
           
           <div className="divide-y divide-white/5 pb-20">
-            {posts.map((post, i) => (
+            {posts.map((post, i) => {
+               // 🔥 LOGIC CHANGE: Check database profile first
+               const displayName = post.profiles?.full_name || post.user_name || "Agent";
+               const displayHandle = post.profiles?.username ? `@${post.profiles.username}` : post.user_handle;
+               const displayAvatar = post.profiles?.avatar_url || post.avatar_url || "/KRYV.png";
+               
+               return (
                <div key={i} className="p-4 hover:bg-white/5 flex gap-3 group relative">
-                  <img src={post.avatar_url || "/KRYV.png"} className="w-10 h-10 rounded-full bg-gray-800 object-cover" />
+                  <img src={displayAvatar} className="w-10 h-10 rounded-full bg-gray-800 object-cover" />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2"><span className="font-bold">{post.user_name}</span><span className="text-gray-500 text-sm">{post.user_handle}</span></div>
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold text-emerald-100">{displayName}</span>
+                            <span className="text-gray-500 text-sm">{displayHandle}</span>
+                        </div>
                         {currentUser && post.user_id === currentUser.id && (
                             <button onClick={() => handleDelete(post.id)} className="text-gray-600 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition">[DELETE]</button>
                         )}
@@ -148,7 +169,7 @@ export default function Home() {
                     {renderContent(post.content)}
                   </div>
                </div>
-            ))}
+            )})}
           </div>
         </main>
       </div>
