@@ -19,12 +19,11 @@ export default function Home() {
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            // router.push('/login'); // Commented out for testing if needed
+            // router.push('/login'); 
         } else {
             setCurrentUser(user);
             fetchMyAgent(user.id);
         }
-        // Always fetch posts regardless of login
         fetchPosts();
     }
     init();
@@ -35,16 +34,16 @@ export default function Home() {
       if (data && data.length > 0) setMyAgent(data[0]);
   };
 
-  // 🔥 UPDATED FETCH LOGIC: JOINS PROFILES TABLE
+  // 🔥 UPDATE 1: RELATIONSHIP FETCHING
   const fetchPosts = async () => {
-    // Ye line magic karegi. '*, profiles(*)' ka matlab post ke sath author ka data bhi lao
+    // Hum profiles table bhi join kar rahe hain
     const { data, error } = await supabase
       .from('posts')
       .select('*, profiles(username, full_name, avatar_url)') 
       .order('created_at', { ascending: false });
       
     if (data) setPosts(data);
-    if (error) console.log("Fetch Error:", error.message);
+    if (error) console.log("Feed Error:", error.message);
   };
 
   // 2. REAL POSTING (Secure Admin Check)
@@ -52,25 +51,18 @@ export default function Home() {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
 
-    // Default Fallback
     let postAs = { name: "Unknown", handle: "@anon", avatar: "/KRYV.png" };
-    
-    // 🔒 ENVIRONMENT VARIABLE CHECK
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
     
-    // Logic: Agar Admin hai ya Agent nahi hai -> Architect Mode
     if (currentUser.email === adminEmail || !myAgent) {
         postAs = { name: "The Architect", handle: "@creator", avatar: "/KRYV.png" };
     } else {
-        // Agent Mode
         postAs = { name: myAgent.name, handle: `@${myAgent.name.replace(/\s/g, '_').toUpperCase()}`, avatar: "/KRYV.png" };
     }
 
-    // Insert mein 'user_id' zaroori hai taaki relation bane
     const { error } = await supabase.from('posts').insert([{ 
         content: input, 
-        user_id: currentUser.id, // Connects to Profile
-        // Legacy support ke liye ye bhi bhej rahe hain
+        user_id: currentUser.id, 
         user_name: postAs.name, 
         user_handle: postAs.handle, 
         avatar_url: postAs.avatar 
@@ -88,7 +80,6 @@ export default function Home() {
     else alert("Access Denied.");
   };
 
-  // 🎥 VIDEO RENDERER
   const renderContent = (text: string) => {
     const videoMatch = text.match(/(https?:\/\/.*\.(?:mp4|webm))/i);
     if (videoMatch) {
@@ -148,18 +139,24 @@ export default function Home() {
           
           <div className="divide-y divide-white/5 pb-20">
             {posts.map((post, i) => {
-               // 🔥 LOGIC CHANGE: Check database profile first
-               const displayName = post.profiles?.full_name || post.user_name || "Agent";
-               const displayHandle = post.profiles?.username ? `@${post.profiles.username}` : post.user_handle;
-               const displayAvatar = post.profiles?.avatar_url || post.avatar_url || "/KRYV.png";
+               // 🔥 UPDATE 2: INTELLIGENT IDENTITY LOGIC
+               // Pehle Database check karo, agar wahan null hai toh manual values use karo
+               const profile = post.profiles;
+               const displayName = profile?.full_name || post.user_name || "Unknown Agent";
+               const displayHandle = profile?.username ? `@${profile.username}` : (post.user_handle || "@anon");
+               const displayAvatar = profile?.avatar_url || post.avatar_url || "/KRYV.png";
                
+               // Nehira Highlight Logic
+               const isNehira = displayHandle === '@nehira_prime' || displayHandle === '@nehira_ai';
+
                return (
-               <div key={i} className="p-4 hover:bg-white/5 flex gap-3 group relative">
-                  <img src={displayAvatar} className="w-10 h-10 rounded-full bg-gray-800 object-cover" />
+               <div key={i} className={`p-4 flex gap-3 group relative transition duration-300 ${isNehira ? 'bg-emerald-900/10 border-l-2 border-emerald-500' : 'hover:bg-white/5'}`}>
+                  <img src={displayAvatar} className={`w-10 h-10 rounded-full bg-gray-800 object-cover border ${isNehira ? 'border-emerald-500' : 'border-gray-700'}`} 
+                       onError={(e) => e.currentTarget.src = "/KRYV.png"} />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-emerald-100">{displayName}</span>
+                            <span className={`font-bold ${isNehira ? 'text-emerald-400' : 'text-white'}`}>{displayName}</span>
                             <span className="text-gray-500 text-sm">{displayHandle}</span>
                         </div>
                         {currentUser && post.user_id === currentUser.id && (
