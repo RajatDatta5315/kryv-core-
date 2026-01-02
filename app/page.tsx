@@ -11,16 +11,16 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
-  const [myAvatar, setMyAvatar] = useState("/KRYV.png"); // Default Avatar
+  const [isAdmin, setIsAdmin] = useState(false); // 🔥 NEW CHECK
 
   useEffect(() => {
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             setCurrentUser(user);
-            // Fetch User Profile for Avatar
-            const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
-            if (profile?.avatar_url) setMyAvatar(profile.avatar_url);
+            // 🔥 CHECK IF ADMIN
+            const adminEmail = "rajatdatta90000@gmail.com"; // Tera Email
+            setIsAdmin(user.email === adminEmail);
         }
         fetchPosts();
         const interval = setInterval(fetchPosts, 3000);
@@ -41,7 +41,13 @@ export default function Home() {
   const handlePost = async () => {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
-    const { error } = await supabase.from('posts').insert([{ content: input, user_id: currentUser.id }]);
+
+    // 🔥 AB HUM SIRF USER_ID BHEJTE HAIN, PROFILE SE DATA AAYEGA
+    const { error } = await supabase.from('posts').insert([{ 
+        content: input, 
+        user_id: currentUser.id 
+    }]);
+
     if (!error) { setInput(""); fetchPosts(); }
     setLoading(false);
   };
@@ -65,7 +71,6 @@ export default function Home() {
         <div className="md:hidden fixed inset-0 top-14 bg-black/95 z-40 p-6 flex flex-col gap-6 text-center">
             <Link href="/" className="text-2xl text-emerald-400 font-bold">FEED</Link>
             <Link href="/studio" className="text-2xl text-gray-400">STUDIO</Link>
-            <Link href="/quantum" className="text-2xl text-gray-400">QUANTUM</Link>
         </div>
       )}
 
@@ -74,13 +79,13 @@ export default function Home() {
 
         <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-black">
           
-          {/* 🔥 SECURITY FIX: CONDITIONAL INPUT AREA */}
+          {/* 🔥 SECURE INPUT AREA */}
           <div className="p-4 border-b border-gray-800 bg-black">
             {currentUser ? (
-                // ✅ LOGGED IN VIEW: Dikhao Input Box
                 <div className="flex gap-4">
+                  {/* ADMIN KO LOGO DIKHEGA, BAAKIYON KO PROFILE PIC */}
                   <img 
-                     src={myAvatar} 
+                     src={isAdmin ? "/KRYV.png" : (currentUser.user_metadata?.avatar_url || "https://github.com/shadcn.png")} 
                      className="w-12 h-12 rounded-full object-cover border border-gray-700" 
                      onError={(e) => e.currentTarget.src="/KRYV.png"}
                   />
@@ -88,29 +93,20 @@ export default function Home() {
                      <textarea 
                         value={input} 
                         onChange={(e) => setInput(e.target.value)} 
-                        placeholder="Broadcast signal..." 
+                        placeholder={isAdmin ? "Broadcast as THE ARCHITECT..." : "Write a signal..."} 
                         className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-lg resize-none h-14 pt-2" 
                      />
                      <div className="flex justify-end mt-2">
-                        <button onClick={handlePost} disabled={loading} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-1.5 rounded-full font-bold text-sm transition-all disabled:opacity-50">
-                            {loading ? "..." : "POST"}
+                        <button onClick={handlePost} disabled={loading} className={`text-white px-6 py-1.5 rounded-full font-bold text-sm transition-all disabled:opacity-50 ${isAdmin ? 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-gray-700 hover:bg-gray-600'}`}>
+                            {loading ? "SENDING..." : isAdmin ? "BROADCAST" : "POST"}
                         </button>
                      </div>
                   </div>
                 </div>
             ) : (
-                // 🔒 GUEST VIEW: Login Karo Button
                 <div className="flex items-center justify-between bg-gray-900/40 p-4 rounded-xl border border-gray-800 backdrop-blur-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 font-bold">?</div>
-                        <div className="flex flex-col">
-                            <span className="text-white font-bold">Access Restricted</span>
-                            <span className="text-gray-500 text-sm">Log in to broadcast to the Neural Network.</span>
-                        </div>
-                    </div>
-                    <Link href="/login" className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-200 transition">
-                        LOGIN
-                    </Link>
+                    <span className="text-gray-400 text-sm">Log in to join the Neural Network.</span>
+                    <Link href="/login" className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-200 transition">LOGIN</Link>
                 </div>
             )}
           </div>
