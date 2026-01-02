@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase Client (Client Side)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -23,7 +22,6 @@ const formatTimeAgo = (dateString: string) => {
 const FeedPost = ({ post, currentUser, onDelete }: any) => {
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  const [animating, setAnimating] = useState(false);
 
   const profile = post.profiles || {};
   const displayName = profile.username || "Unknown";
@@ -31,14 +29,10 @@ const FeedPost = ({ post, currentUser, onDelete }: any) => {
   const displayAvatar = profile.avatar_url || "/KRYV.png";
   const isVerified = ['nehira_prime', 'cipher_007', 'kael_tech', 'aria_trend', 'vortex_data', 'kryv_architect'].includes(profile.username);
 
-  // 1. Check Like Status on Load
   useEffect(() => {
     const checkLike = async () => {
-      // Count total likes
       const { count } = await supabase.from('likes').select('*', { count: 'exact' }).eq('post_id', post.id);
       setLikesCount(count || 0);
-
-      // Check if current user liked
       if (currentUser) {
         const { data } = await supabase.from('likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id);
         if (data && data.length > 0) setLiked(true);
@@ -47,26 +41,15 @@ const FeedPost = ({ post, currentUser, onDelete }: any) => {
     checkLike();
   }, [post.id, currentUser]);
 
-  // 2. Handle Like Click
   const toggleLike = async () => {
-    if (!currentUser) return alert("Login to access Neural Feedback.");
-    
-    // UI Optimistic Update (Turant dikhao)
-    const newLikedState = !liked;
-    setLiked(newLikedState);
-    setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
-    setAnimating(true);
-    setTimeout(() => setAnimating(false), 500); // Heartbeat animation reset
-
-    if (newLikedState) {
-      await supabase.from('likes').insert({ user_id: currentUser.id, post_id: post.id });
-    } else {
-      await supabase.from('likes').delete().eq('user_id', currentUser.id).eq('post_id', post.id);
-    }
+    if (!currentUser) return alert("Login required");
+    setLiked(!liked);
+    setLikesCount(prev => liked ? prev - 1 : prev + 1);
+    if (!liked) await supabase.from('likes').insert({ user_id: currentUser.id, post_id: post.id });
+    else await supabase.from('likes').delete().eq('user_id', currentUser.id).eq('post_id', post.id);
   };
 
   const renderContent = (text: string) => {
-    // Video Logic (Same as before)
     const videoMatch = text.match(/(https?:\/\/.*\.(?:mp4|webm))/i);
     if (videoMatch) {
         const url = videoMatch[0];
@@ -86,8 +69,8 @@ const FeedPost = ({ post, currentUser, onDelete }: any) => {
   return (
     <div className="p-5 hover:bg-white/5 transition duration-200 border-b border-gray-800/50 cursor-pointer">
       <div className="flex gap-3">
-        {/* AVATAR LINK TO PROFILE */}
-        <Link href={`/profile/${post.user_id}`} onClick={(e) => e.stopPropagation()}>
+        {/* 🔥 UPDATED LINK FORMAT */}
+        <Link href={`/profile?id=${post.user_id}`} onClick={(e) => e.stopPropagation()}>
             <img 
             src={displayAvatar} 
             className={`w-12 h-12 rounded-full object-cover border-2 ${isVerified ? 'border-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'border-gray-800'}`} 
@@ -98,7 +81,8 @@ const FeedPost = ({ post, currentUser, onDelete }: any) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-                <Link href={`/profile/${post.user_id}`} onClick={(e) => e.stopPropagation()} className="hover:underline decoration-emerald-500">
+                {/* 🔥 UPDATED LINK FORMAT */}
+                <Link href={`/profile?id=${post.user_id}`} onClick={(e) => e.stopPropagation()} className="hover:underline decoration-emerald-500">
                     <span className={`font-bold text-[15px] ${isVerified ? 'text-emerald-400' : 'text-white'}`}>{displayName}</span>
                 </Link>
                 {isVerified && (
@@ -109,33 +93,17 @@ const FeedPost = ({ post, currentUser, onDelete }: any) => {
             </div>
             
             {currentUser && post.user_id === currentUser.id && (
-                <button onClick={(e) => { e.stopPropagation(); onDelete(post.id); }} className="text-gray-600 hover:text-red-500 text-xs hover:bg-red-500/10 p-1 rounded">
-                    ✕
-                </button>
+                <button onClick={(e) => { e.stopPropagation(); onDelete(post.id); }} className="text-gray-600 hover:text-red-500 text-xs p-1">✕</button>
             )}
           </div>
-
           {renderContent(post.content)}
-
-          {/* ACTIVE BUTTONS */}
+          
           <div className="flex justify-between max-w-sm mt-3 pt-2 text-gray-500">
-             <button className="flex items-center gap-2 hover:text-blue-400 text-xs transition group">
-                <span className="text-lg group-hover:scale-110 transition">💬</span> Reply
+             <button className="flex items-center gap-2 hover:text-blue-400 text-xs transition">💬 Reply</button>
+             <button onClick={(e) => { e.stopPropagation(); toggleLike(); }} className={`flex items-center gap-2 text-xs transition ${liked ? 'text-pink-500' : 'hover:text-pink-500'}`}>
+                {liked ? '♥' : '♡'} {likesCount > 0 && <span>{likesCount}</span>}
              </button>
-             
-             <button 
-                onClick={(e) => { e.stopPropagation(); toggleLike(); }}
-                className={`flex items-center gap-2 text-xs transition group ${liked ? 'text-pink-500' : 'hover:text-pink-500'}`}
-             >
-                <span className={`text-lg transition ${liked ? 'scale-110' : 'group-hover:scale-110'} ${animating ? 'animate-ping' : ''}`}>
-                    {liked ? '♥' : '♡'}
-                </span> 
-                {likesCount > 0 && <span>{likesCount}</span>}
-             </button>
-             
-             <button className="flex items-center gap-2 hover:text-green-400 text-xs transition group">
-                <span className="text-lg group-hover:scale-110 transition">⚡</span> Share
-             </button>
+             <button className="flex items-center gap-2 hover:text-green-400 text-xs transition">⚡ Share</button>
           </div>
         </div>
       </div>
