@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase'; 
-import Link from 'next/link';
 import Sidebar from '../components/Sidebar'; 
 import FeedPost from '../components/FeedPost'; 
+import FeedInput from '../components/FeedInput';
+import MobileNav from '../components/MobileNav';
 
 export default function Home() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -12,41 +13,25 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
   const [isAdmin, setIsAdmin] = useState(false);
-  // Default Avatar ko Blank/Generic rakho, KRYV nahi
-  const [myAvatar, setMyAvatar] = useState("https://github.com/shadcn.png"); 
+  const [myAvatar, setMyAvatar] = useState("https://github.com/shadcn.png");
 
-  const ADMIN_EMAIL = "rajatdatta90000@gmail.com";
+  const ADMIN_EMAIL = "rajatdatta90000@gmail.com"; 
 
   useEffect(() => {
-    // 1. Check Auth State Immediately
-    async function checkAuth() {
+    async function init() {
         const { data: { user } } = await supabase.auth.getUser();
-        
         if (user) {
-            console.log("Logged in as:", user.email);
             setCurrentUser(user);
-            
-            // 🔥 STRICT CHECK
-            if (user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) {
-                setIsAdmin(true);
-                setMyAvatar("/KRYV.png"); // Only Admin gets KRYV Logo
-            } else {
-                setIsAdmin(false);
-                // Fetch User's Real Avatar
-                const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
-                setMyAvatar(profile?.avatar_url || "https://github.com/shadcn.png");
-            }
-        } else {
-            setCurrentUser(null);
-            setIsAdmin(false);
+            const isBoss = user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+            setIsAdmin(isBoss);
+            const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
+            if (profile?.avatar_url) setMyAvatar(profile.avatar_url);
         }
-        
         fetchPosts();
+        const interval = setInterval(fetchPosts, 3000);
+        return () => clearInterval(interval);
     }
-    
-    checkAuth();
-    const interval = setInterval(fetchPosts, 3000);
-    return () => clearInterval(interval);
+    init();
   }, []);
 
   const fetchPosts = async () => {
@@ -61,79 +46,37 @@ export default function Home() {
   const handlePost = async () => {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
-
-    const { error } = await supabase.from('posts').insert([{ 
-        content: input, 
-        user_id: currentUser.id 
-    }]);
-
+    const { error } = await supabase.from('posts').insert([{ content: input, user_id: currentUser.id }]);
     if (!error) { setInput(""); fetchPosts(); }
-    else { alert("Transmission Failed: " + error.message); }
+    else { alert("Transmission Error: " + error.message); }
     setLoading(false);
   };
 
   const handleDelete = async (postId: string) => {
-    if(!confirm("Terminate Signal?")) return;
+    if(!confirm("Purge Signal?")) return;
     await supabase.from('posts').delete().eq('id', postId);
     fetchPosts();
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#050505] text-white font-sans pb-20 md:pb-0 selection:bg-emerald-500/30">
       
       {/* MOBILE HEADER */}
-      <div className="md:hidden flex justify-between items-center p-3 border-b border-gray-800 bg-black/90 sticky top-0 z-50 backdrop-blur-md">
-         <div className="flex items-center gap-2"><img src="/KRYV.png" className="h-6 w-6" /><span className="font-bold tracking-widest">KRYV</span></div>
-         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-emerald-500 font-bold text-xl">☰</button>
+      <div className="md:hidden flex justify-between items-center p-4 border-b border-gray-800 bg-black/90 sticky top-0 z-50 backdrop-blur-md">
+         <div className="flex items-center gap-2"><img src="/KRYV.png" className="h-6 w-6" /><span className="font-bold tracking-widest text-lg">KRYV</span></div>
+         <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-emerald-500 font-bold text-2xl">☰</button>
       </div>
 
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-14 bg-black/95 z-40 p-6 flex flex-col gap-6 text-center animate-in fade-in slide-in-from-top-5">
-            <Link href="/" className="text-xl text-emerald-400 font-bold tracking-widest border-b border-gray-800 pb-2">FEED</Link>
-            <div className="w-full">
-                <input 
-                   placeholder="Search..." 
-                   onKeyDown={(e) => { if(e.key==='Enter') window.location.href=`/search?q=${(e.target as HTMLInputElement).value}` }}
-                   className="w-full bg-gray-900 border border-gray-700 rounded-lg py-3 px-4 text-white text-center focus:border-emerald-500 outline-none"
-                />
-            </div>
-            <Link href="/notifications" className="text-xl text-gray-300 font-bold tracking-widest hover:text-white">NOTIFICATIONS</Link>
-            <Link href="/studio" className="text-xl text-gray-300 font-bold tracking-widest hover:text-white">STUDIO</Link>
-        </div>
-      )}
+      <MobileNav mobileMenuOpen={mobileMenuOpen} setMobileMenuOpen={setMobileMenuOpen} />
 
       <div className="max-w-7xl mx-auto flex min-h-screen">
         <Sidebar currentUser={currentUser} />
 
-        <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-black">
-          <div className="p-4 border-b border-gray-800 bg-black">
-            {currentUser ? (
-                <div className="flex gap-4">
-                  <img 
-                     src={myAvatar} 
-                     className="w-12 h-12 rounded-full object-cover border border-gray-700" 
-                  />
-                  <div className="flex-1">
-                     <textarea 
-                        value={input} 
-                        onChange={(e) => setInput(e.target.value)} 
-                        placeholder={isAdmin ? "Broadcast as THE ARCHITECT..." : `Signal as @${currentUser.email?.split('@')[0]}...`} 
-                        className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-lg resize-none h-14 pt-2" 
-                     />
-                     <div className="flex justify-end mt-2">
-                        <button onClick={handlePost} disabled={loading} className={`text-white px-6 py-1.5 rounded-full font-bold text-sm transition-all disabled:opacity-50 ${isAdmin ? 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-gray-700 hover:bg-gray-600'}`}>
-                            {loading ? "SENDING..." : isAdmin ? "BROADCAST" : "POST"}
-                        </button>
-                     </div>
-                  </div>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between bg-gray-900/40 p-4 rounded-xl border border-gray-800 backdrop-blur-sm">
-                    <span className="text-gray-400 text-sm">Log in to join the Neural Network.</span>
-                    <Link href="/login" className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-200 transition">LOGIN</Link>
-                </div>
-            )}
-          </div>
+        <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-[#050505]">
+          <FeedInput 
+            input={input} setInput={setInput} handlePost={handlePost} 
+            loading={loading} currentUser={currentUser} isAdmin={isAdmin} myAvatar={myAvatar} 
+          />
           
           <div className="pb-20">
             {posts.map((post) => (
