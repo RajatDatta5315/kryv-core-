@@ -12,28 +12,41 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
   const [isAdmin, setIsAdmin] = useState(false);
-  const [myAvatar, setMyAvatar] = useState("/KRYV.png");
+  // Default Avatar ko Blank/Generic rakho, KRYV nahi
+  const [myAvatar, setMyAvatar] = useState("https://github.com/shadcn.png"); 
 
-  // 🔥 STRICT ADMIN CHECK
-  const ADMIN_EMAIL = "rajatdatta90000@gmail.com"; 
+  const ADMIN_EMAIL = "rajatdatta90000@gmail.com";
 
   useEffect(() => {
-    async function init() {
+    // 1. Check Auth State Immediately
+    async function checkAuth() {
         const { data: { user } } = await supabase.auth.getUser();
+        
         if (user) {
+            console.log("Logged in as:", user.email);
             setCurrentUser(user);
-            // Strict Check: Lowercase & Trim to avoid errors
-            const isBoss = user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
-            setIsAdmin(isBoss);
             
-            const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
-            if (profile?.avatar_url) setMyAvatar(profile.avatar_url);
+            // 🔥 STRICT CHECK
+            if (user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase()) {
+                setIsAdmin(true);
+                setMyAvatar("/KRYV.png"); // Only Admin gets KRYV Logo
+            } else {
+                setIsAdmin(false);
+                // Fetch User's Real Avatar
+                const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
+                setMyAvatar(profile?.avatar_url || "https://github.com/shadcn.png");
+            }
+        } else {
+            setCurrentUser(null);
+            setIsAdmin(false);
         }
+        
         fetchPosts();
-        const interval = setInterval(fetchPosts, 3000);
-        return () => clearInterval(interval);
     }
-    init();
+    
+    checkAuth();
+    const interval = setInterval(fetchPosts, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPosts = async () => {
@@ -49,13 +62,13 @@ export default function Home() {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
 
-    // 🔥 FORCE USER_ID
     const { error } = await supabase.from('posts').insert([{ 
         content: input, 
         user_id: currentUser.id 
     }]);
 
     if (!error) { setInput(""); fetchPosts(); }
+    else { alert("Transmission Failed: " + error.message); }
     setLoading(false);
   };
 
@@ -74,27 +87,18 @@ export default function Home() {
          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-emerald-500 font-bold text-xl">☰</button>
       </div>
 
-      {/* MOBILE MENU */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-14 bg-black/95 z-40 p-6 flex flex-col gap-6 text-center animate-in fade-in slide-in-from-top-5">
-            <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-xl text-emerald-400 font-bold tracking-widest border-b border-gray-800 pb-2">FEED</Link>
-            
+            <Link href="/" className="text-xl text-emerald-400 font-bold tracking-widest border-b border-gray-800 pb-2">FEED</Link>
             <div className="w-full">
                 <input 
                    placeholder="Search..." 
-                   onKeyDown={(e) => { 
-                       if(e.key==='Enter') {
-                           window.location.href=`/search?q=${(e.target as HTMLInputElement).value}`;
-                           setMobileMenuOpen(false);
-                       }
-                   }}
+                   onKeyDown={(e) => { if(e.key==='Enter') window.location.href=`/search?q=${(e.target as HTMLInputElement).value}` }}
                    className="w-full bg-gray-900 border border-gray-700 rounded-lg py-3 px-4 text-white text-center focus:border-emerald-500 outline-none"
                 />
             </div>
-
             <Link href="/notifications" className="text-xl text-gray-300 font-bold tracking-widest hover:text-white">NOTIFICATIONS</Link>
             <Link href="/studio" className="text-xl text-gray-300 font-bold tracking-widest hover:text-white">STUDIO</Link>
-            <Link href="/quantum" className="text-xl text-gray-300 font-bold tracking-widest hover:text-emerald-400">QUANTUM</Link>
         </div>
       )}
 
@@ -102,20 +106,18 @@ export default function Home() {
         <Sidebar currentUser={currentUser} />
 
         <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-black">
-          {/* INPUT AREA */}
           <div className="p-4 border-b border-gray-800 bg-black">
             {currentUser ? (
                 <div className="flex gap-4">
                   <img 
-                     src={isAdmin ? "/KRYV.png" : myAvatar} 
+                     src={myAvatar} 
                      className="w-12 h-12 rounded-full object-cover border border-gray-700" 
-                     onError={(e) => e.currentTarget.src="/KRYV.png"}
                   />
                   <div className="flex-1">
                      <textarea 
                         value={input} 
                         onChange={(e) => setInput(e.target.value)} 
-                        placeholder={isAdmin ? "Broadcast as THE ARCHITECT..." : "Write a signal..."} 
+                        placeholder={isAdmin ? "Broadcast as THE ARCHITECT..." : `Signal as @${currentUser.email?.split('@')[0]}...`} 
                         className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-lg resize-none h-14 pt-2" 
                      />
                      <div className="flex justify-end mt-2">
