@@ -2,7 +2,7 @@ name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: ["main"] # Ya "master", jo bhi tera main branch hai
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -16,15 +16,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install Node.js
+      - name: Install Node.js (Upgraded to 20)
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Dependencies
         run: npm install
 
       - name: Build Project
+        env:
+          # 👇 Ye zaroori hai taaki Build fail na ho
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build
 
       - name: Publish to Cloudflare Pages
@@ -32,6 +36,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: kryv-core # ⚠️ YAHAN TERA CLOUDFLARE PROJECT NAME LIKH (Check Dashboard)
-          directory: out # Next.js export folder
+          projectName: kryv-core
+          directory: out
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
