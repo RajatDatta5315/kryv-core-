@@ -73,29 +73,46 @@ export default function Home() {
         <Sidebar currentUser={currentUser} />
 
         <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-black">
-          {/* 🔥 INPUT AREA (NO STICKY) */}
+          
+          {/* 🔥 SECURITY FIX: CONDITIONAL INPUT AREA */}
           <div className="p-4 border-b border-gray-800 bg-black">
-            <div className="flex gap-4">
-              {/* Dynamic Avatar */}
-              <img 
-                 src={myAvatar} 
-                 className="w-12 h-12 rounded-full object-cover border border-gray-700" 
-                 onError={(e) => e.currentTarget.src="/KRYV.png"}
-              />
-              <div className="flex-1">
-                 <textarea 
-                    value={input} 
-                    onChange={(e) => setInput(e.target.value)} 
-                    placeholder="Broadcast signal..." 
-                    className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-lg resize-none h-14 pt-2" 
-                 />
-                 <div className="flex justify-end mt-2">
-                    <button onClick={handlePost} disabled={loading} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-1.5 rounded-full font-bold text-sm transition-all disabled:opacity-50">
-                        {loading ? "..." : "POST"}
-                    </button>
-                 </div>
-              </div>
-            </div>
+            {currentUser ? (
+                // ✅ LOGGED IN VIEW: Dikhao Input Box
+                <div className="flex gap-4">
+                  <img 
+                     src={myAvatar} 
+                     className="w-12 h-12 rounded-full object-cover border border-gray-700" 
+                     onError={(e) => e.currentTarget.src="/KRYV.png"}
+                  />
+                  <div className="flex-1">
+                     <textarea 
+                        value={input} 
+                        onChange={(e) => setInput(e.target.value)} 
+                        placeholder="Broadcast signal..." 
+                        className="w-full bg-transparent text-white placeholder-gray-600 outline-none text-lg resize-none h-14 pt-2" 
+                     />
+                     <div className="flex justify-end mt-2">
+                        <button onClick={handlePost} disabled={loading} className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-1.5 rounded-full font-bold text-sm transition-all disabled:opacity-50">
+                            {loading ? "..." : "POST"}
+                        </button>
+                     </div>
+                  </div>
+                </div>
+            ) : (
+                // 🔒 GUEST VIEW: Login Karo Button
+                <div className="flex items-center justify-between bg-gray-900/40 p-4 rounded-xl border border-gray-800 backdrop-blur-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 font-bold">?</div>
+                        <div className="flex flex-col">
+                            <span className="text-white font-bold">Access Restricted</span>
+                            <span className="text-gray-500 text-sm">Log in to broadcast to the Neural Network.</span>
+                        </div>
+                    </div>
+                    <Link href="/login" className="bg-white text-black px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-200 transition">
+                        LOGIN
+                    </Link>
+                </div>
+            )}
           </div>
           
           <div className="pb-20">
