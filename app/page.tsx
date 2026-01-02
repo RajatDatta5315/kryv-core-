@@ -14,13 +14,18 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatar, setMyAvatar] = useState("/KRYV.png");
 
+  // 🔥 STRICT ADMIN CHECK
+  const ADMIN_EMAIL = "rajatdatta90000@gmail.com"; 
+
   useEffect(() => {
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
             setCurrentUser(user);
-            const adminEmail = "rajatdatta90000@gmail.com"; 
-            setIsAdmin(user.email === adminEmail);
+            // Strict Check: Lowercase & Trim to avoid errors
+            const isBoss = user.email?.toLowerCase().trim() === ADMIN_EMAIL.toLowerCase().trim();
+            setIsAdmin(isBoss);
+            
             const { data: profile } = await supabase.from('profiles').select('avatar_url').eq('id', user.id).single();
             if (profile?.avatar_url) setMyAvatar(profile.avatar_url);
         }
@@ -43,10 +48,13 @@ export default function Home() {
   const handlePost = async () => {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
+
+    // 🔥 FORCE USER_ID
     const { error } = await supabase.from('posts').insert([{ 
         content: input, 
         user_id: currentUser.id 
     }]);
+
     if (!error) { setInput(""); fetchPosts(); }
     setLoading(false);
   };
@@ -66,15 +74,14 @@ export default function Home() {
          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-emerald-500 font-bold text-xl">☰</button>
       </div>
 
-      {/* 🔥 MOBILE MENU (UPDATED WITH SEARCH & NOTIFS) */}
+      {/* MOBILE MENU */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-14 bg-black/95 z-40 p-6 flex flex-col gap-6 text-center animate-in fade-in slide-in-from-top-5">
             <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-xl text-emerald-400 font-bold tracking-widest border-b border-gray-800 pb-2">FEED</Link>
             
-            {/* SEARCH BAR FOR MOBILE */}
             <div className="w-full">
                 <input 
-                   placeholder="Search Neural Network..." 
+                   placeholder="Search..." 
                    onKeyDown={(e) => { 
                        if(e.key==='Enter') {
                            window.location.href=`/search?q=${(e.target as HTMLInputElement).value}`;
@@ -95,6 +102,7 @@ export default function Home() {
         <Sidebar currentUser={currentUser} />
 
         <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-black">
+          {/* INPUT AREA */}
           <div className="p-4 border-b border-gray-800 bg-black">
             {currentUser ? (
                 <div className="flex gap-4">
