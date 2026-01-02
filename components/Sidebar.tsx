@@ -8,10 +8,9 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
 
   const handleSearch = (e: any) => {
       if (e.key === 'Enter' && query.trim()) {
-          // Search Logic: Hum query params use karenge
-          // Note: Abhi ke liye hum feed pe redirect kar rahe hain, future me search page banayenge
-          alert("Scanning Neural Network for: " + query); 
-          // Future: router.push(`/search?q=${query}`);
+          // 🔥 REAL REDIRECT TO SEARCH PAGE
+          router.push(`/search?q=${encodeURIComponent(query)}`);
+          setQuery(""); 
       }
   };
 
@@ -43,7 +42,6 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
          {/* 🔔 NOTIFICATIONS */}
          <Link href="/notifications" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-white hover:bg-white/5 p-3 rounded-xl transition-all group">
             <span className="text-gray-600 group-hover:text-pink-500 transition">@</span> Notifications
-            <span className="ml-auto bg-emerald-900 text-emerald-500 text-[10px] px-2 rounded-full">New</span>
          </Link>
 
          <Link href="/studio" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-white hover:bg-white/5 p-3 rounded-xl transition-all">
