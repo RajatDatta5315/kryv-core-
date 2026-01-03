@@ -1,115 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/utils/supabase';
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-
-// ... (formatTimeAgo function same rahega) ...
-const formatTimeAgo = (dateString: string) => { /* same code */ 
-  const now = new Date();
-  const past = new Date(dateString);
-  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
-  if (diffInSeconds < 60) return 'Just now';
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes}m`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h`;
-  return `${Math.floor(diffInHours / 24)}d`;
-};
-
-const FeedPost = ({ post, currentUser, onDelete }: any) => {
+export default function FeedPost({ post, currentUser, onDelete }: any) {
+  const [likes, setLikes] = useState(0); // You can connect real likes count later
   const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
-  const [copied, setCopied] = useState(false);
 
-  const profile = post.profiles || {};
-  const isVerified = ['nehira_prime', 'cipher_007', 'kael_tech', 'aria_trend', 'vortex_data', 'kryv_architect'].includes(profile.username);
-
-  // ... (useEffect checkLike same rahega) ...
-  useEffect(() => {
-    const checkLike = async () => {
-      const { count } = await supabase.from('likes').select('*', { count: 'exact' }).eq('post_id', post.id);
-      setLikesCount(count || 0);
+  const handleLike = async () => {
+      setLiked(!liked);
+      setLikes(prev => liked ? prev - 1 : prev + 1);
       if (currentUser) {
-        const { data } = await supabase.from('likes').select('id').eq('post_id', post.id).eq('user_id', currentUser.id);
-        if (data && data.length > 0) setLiked(true);
-      }
-    };
-    checkLike();
-  }, [post.id, currentUser]);
-
-  const toggleLike = async () => { /* Same Code */ 
-    if (!currentUser) return alert("Login required");
-    setLiked(!liked);
-    setLikesCount(prev => liked ? prev - 1 : prev + 1);
-    if (!liked) await supabase.from('likes').insert({ user_id: currentUser.id, post_id: post.id });
-    else await supabase.from('likes').delete().eq('user_id', currentUser.id).eq('post_id', post.id);
-  };
-
-  // 🔥 NEW: REPLY LOGIC
-  const handleReply = () => {
-      // Input box dhoondho aur usme @handle likho
-      const inputBox = document.querySelector('textarea') as HTMLTextAreaElement;
-      if (inputBox) {
-          inputBox.value = `@${profile.username} `;
-          inputBox.focus();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-          alert("Go to top to reply!");
+          await supabase.from('likes').insert({ user_id: currentUser.id, post_id: post.id });
       }
   };
 
-  // 🔥 NEW: SHARE LOGIC
-  const handleShare = () => {
-      const url = `${window.location.origin}/profile?id=${post.user_id}`;
-      navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-  };
+  const isArchitect = post.profiles?.username === 'kryv_architect';
 
   return (
-    <div className="p-5 hover:bg-white/5 transition duration-200 border-b border-gray-800/50 cursor-pointer">
-      <div className="flex gap-3">
-        <Link href={`/profile?id=${post.user_id}`} onClick={(e) => e.stopPropagation()}>
-            <img src={profile.avatar_url || "/KRYV.png"} className={`w-12 h-12 rounded-full object-cover border-2 ${isVerified ? 'border-emerald-500' : 'border-gray-800'}`} onError={(e) => e.currentTarget.src="/KRYV.png"} />
+    <div className={`p-5 border-b border-gray-800 hover:bg-white/2 transition duration-200 ${isArchitect ? 'bg-emerald-900/10 border-l-4 border-l-emerald-500' : ''}`}>
+      <div className="flex gap-4">
+        {/* Avatar */}
+        <Link href={`/profile?id=${post.user_id}`} className="shrink-0">
+            <img 
+              src={post.profiles?.avatar_url || "/KRYV.png"} 
+              className={`w-12 h-12 rounded-full object-cover ${isArchitect ? 'border-2 border-emerald-500' : 'border border-gray-700'}`}
+              onError={(e) => e.currentTarget.src="/KRYV.png"}
+            />
         </Link>
-        
+
+        {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-                <Link href={`/profile?id=${post.user_id}`} onClick={(e) => e.stopPropagation()} className="hover:underline decoration-emerald-500">
-                    <span className={`font-bold text-[15px] ${isVerified ? 'text-emerald-400' : 'text-white'}`}>{profile.username || "Unknown"}</span>
+            <div className="flex items-center gap-2 mb-1">
+                <Link href={`/profile?id=${post.user_id}`} className="font-bold text-white hover:underline truncate">
+                    {post.profiles?.full_name || post.profiles?.username || "Unknown Agent"}
                 </Link>
-                {isVerified && <span className="text-blue-500 text-sm">☑</span>}
-                <span className="text-gray-500 text-sm ml-1">@{profile.username}</span>
-                <span className="text-gray-600 text-xs ml-2">· {formatTimeAgo(post.created_at)}</span>
+                {isArchitect && <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-1.5 rounded font-mono">ARCHITECT</span>}
+                <span className="text-gray-500 text-sm">@{post.profiles?.username}</span>
+                <span className="text-gray-600 text-sm">· {new Date(post.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </div>
-            {currentUser && post.user_id === currentUser.id && (
-                <button onClick={(e) => { e.stopPropagation(); onDelete(post.id); }} className="text-gray-600 hover:text-red-500 text-xs">✕</button>
-            )}
-          </div>
 
-          <p className="mt-1 text-gray-300 text-[15px] leading-relaxed whitespace-pre-wrap">{post.content}</p>
+            <p className="text-gray-200 text-[15px] leading-relaxed break-words font-light">
+                {post.content}
+            </p>
 
-          <div className="flex justify-between max-w-sm mt-3 pt-2 text-gray-500">
-             <button onClick={(e) => { e.stopPropagation(); handleReply(); }} className="flex items-center gap-2 hover:text-blue-400 text-xs transition group">
-                <span className="text-lg group-hover:scale-110 transition">💬</span> Reply
-             </button>
-             
-             <button onClick={(e) => { e.stopPropagation(); toggleLike(); }} className={`flex items-center gap-2 text-xs transition ${liked ? 'text-pink-500' : 'hover:text-pink-500'}`}>
-                <span className={`text-lg transition ${liked ? 'scale-110' : ''}`}>{liked ? '♥' : '♡'}</span> 
-                {likesCount > 0 && <span>{likesCount}</span>}
-             </button>
-             
-             <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className="flex items-center gap-2 hover:text-green-400 text-xs transition group">
-                <span className="text-lg group-hover:scale-110 transition">⚡</span> {copied ? "Copied!" : "Share"}
-             </button>
-          </div>
+            {/* Actions */}
+            <div className="flex items-center gap-8 mt-3 text-gray-500 text-sm">
+                <button className="flex items-center gap-2 hover:text-blue-400 transition group">
+                    <span>💬</span> <span className="text-xs">Reply</span>
+                </button>
+                <button onClick={handleLike} className={`flex items-center gap-2 transition group ${liked ? 'text-pink-500' : 'hover:text-pink-500'}`}>
+                    <span>{liked ? '❤️' : '♡'}</span> <span className="text-xs">{likes > 0 ? likes : ''}</span>
+                </button>
+                <button className="flex items-center gap-2 hover:text-emerald-400 transition">
+                    <span>⚡</span> <span className="text-xs">Share</span>
+                </button>
+                {currentUser?.id === post.user_id && (
+                    <button onClick={() => onDelete(post.id)} className="text-red-900 hover:text-red-500 ml-auto text-xs">DEL</button>
+                )}
+            </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default FeedPost;
+}
 
