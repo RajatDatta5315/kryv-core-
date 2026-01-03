@@ -26,72 +26,58 @@ export default function KryvStudio() {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
         recognition.lang = 'en-US';
         setIsListening(true);
         recognition.start();
         recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setCommand(transcript);
+            const text = event.results[0][0].transcript;
+            setCommand(text);
             setIsListening(false);
-            speak(`Blueprint received: ${transcript}`);
         };
-        recognition.onerror = () => setIsListening(false);
-    } else { alert("Voice Module Offline."); }
-  };
-
-  const speak = (text: string) => {
-      const synth = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(text);
-      const voices = synth.getVoices();
-      const aiVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
-      if (aiVoice) utterance.voice = aiVoice;
-      utterance.pitch = 0.9; utterance.rate = 1.1; 
-      synth.speak(utterance);
+    } else { alert("Voice Offline"); }
   };
 
   const handleBuild = async () => {
       if(!command.trim()) return;
       setProcessing(true);
-      setLogs([]);
-      speak("Initializing Genesis Protocol. Connecting to Cohere Brain.");
+      setLogs([]); // Clear logs
       
       const ADMIN_EMAIL = "rajatdatta90000@gmail.com";
       const isAdmin = currentUser?.email?.toLowerCase() === ADMIN_EMAIL;
 
-      // 1. CALL THE REAL API (Cohere)
-      setLogs(prev => [...prev, `> [NEHIRA]: Analyzing Intent via Cohere AI...`]);
-      
+      setLogs(prev => [...prev, `> [SYSTEM]: Initializing Genesis Protocol...`]);
+      setLogs(prev => [...prev, `> [NEHIRA]: Analyzing Intent via Neural Core...`]); // 🔥 BRANDING FIXED
+
       try {
           const response = await fetch('/api/studio/generate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ prompt: command, isAdmin }) // Pass Admin Status
+              body: JSON.stringify({ prompt: command, isAdmin })
           });
           const data = await response.json();
           
           if(data.success) {
-              setLogs(prev => [...prev, `> [BLUEPRINT]: Generated ${data.blueprint.name}`]);
+              setLogs(prev => [...prev, `> [BLUEPRINT]: ${data.blueprint.name}`]);
               setLogs(prev => [...prev, `> [ROLE]: ${data.blueprint.role}`]);
-              setLogs(prev => [...prev, `> [APIs]: ${data.blueprint.apis.join(', ')}`]);
               
               if(isAdmin || data.blueprint.cost === "FREE") {
-                  setLogs(prev => [...prev, `> [DEPLOY]: Creating Neural Identity in Database...`]);
-                  speak(`Agent ${data.blueprint.name} is now alive in the network.`);
+                  setLogs(prev => [...prev, `> [DEPLOY]: Writing to Database...`]);
+                  setLogs(prev => [...prev, `> [SUCCESS]: Entity Active.`]);
               } else {
                   setLogs(prev => [...prev, `> [BILLING]: ${data.blueprint.cost} Required.`]);
-                  speak(`Blueprint ready. Payment required to deploy.`);
+                  setLogs(prev => [...prev, `> [STATUS]: Awaiting Payment.`]);
               }
+          } else {
+              setLogs(prev => [...prev, `> [ERROR]: Neural Core Unresponsive.`]);
           }
       } catch (e) {
-          setLogs(prev => [...prev, `> [ERROR]: Connection Lost.`]);
+          setLogs(prev => [...prev, `> [ERROR]: Connection Lost. Check Network.`]);
       }
       setProcessing(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex font-sans overflow-hidden selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-[#020617] text-white flex font-sans overflow-hidden">
       <Sidebar currentUser={currentUser} />
       <div className="flex-1 md:ml-64 relative flex flex-col">
           {/* BACKGROUND */}
@@ -103,7 +89,7 @@ export default function KryvStudio() {
           <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-6">
               <StudioCore processing={processing} isListening={isListening} startListening={startListening} />
               <StudioLogs logs={logs} />
-              <StudioInput command={command} setCommand={setCommand} handleBuild={handleBuild} processing={processing} startListening={startListening} isListening={isListening} />
+              <StudioInput command={command} setCommand={setCommand} handleBuild={handleBuild} processing={processing} startListening={startListening} />
           </div>
       </div>
     </div>
