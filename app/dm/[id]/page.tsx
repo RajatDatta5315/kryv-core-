@@ -1,15 +1,15 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/utils/supabase';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Sidebar from '../../../components/Sidebar';
 
-// 🔥 IMPORTANT: This prevents build error
+// 🔥 CRITICAL FIX FOR CLOUDFLARE BUILD
 export const dynamic = "force-dynamic";
 
 export default function DirectMessage() {
   const params = useParams();
-  const receiverId = params?.id; // Safe access
+  const receiverId = params?.id; 
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -24,11 +24,9 @@ export default function DirectMessage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) setCurrentUser(user);
         
-        // Fetch Receiver
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', receiverId).single();
         setReceiver(profile);
 
-        // Fetch Old Messages
         const { data: oldMsgs } = await supabase.from('messages')
             .select('*')
             .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
@@ -40,7 +38,6 @@ export default function DirectMessage() {
         ) || [];
         setMessages(chatMsgs);
 
-        // Realtime Subscription
         const channel = supabase.channel('chat_room')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
                 const newMsg = payload.new;
@@ -70,7 +67,7 @@ export default function DirectMessage() {
       setInput("");
   };
 
-  if(!receiverId) return <div className="text-white">Loading Chat...</div>;
+  if(!receiverId) return <div className="text-white p-10">Loading Neural Link...</div>;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex font-sans">
