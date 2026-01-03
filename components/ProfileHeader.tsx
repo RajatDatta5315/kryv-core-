@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import EditProfileModal from './EditProfileModal'; // Import Modal
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
@@ -7,21 +8,16 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [isEditing, setIsEditing] = useState(false); // State for Edit Modal
 
   // Check Database for stats
   useEffect(() => {
     async function checkStats() {
        if (!profile?.id) return;
-       
-       // Get Followers Count
        const { count: fCount } = await supabase.from('follows').select('*', { count: 'exact' }).eq('following_id', profile.id);
        setFollowersCount(fCount || 0);
-
-       // Get Following Count
        const { count: ingCount } = await supabase.from('follows').select('*', { count: 'exact' }).eq('follower_id', profile.id);
        setFollowingCount(ingCount || 0);
-
-       // Check if I follow them
        if (currentUser) {
            const { data } = await supabase.from('follows').select('*').eq('follower_id', currentUser.id).eq('following_id', profile.id);
            if (data && data.length > 0) setIsFollowing(true);
@@ -31,15 +27,12 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
   }, [profile, currentUser]);
 
   const toggleFollow = async () => {
-      if (!currentUser) return alert("Login to access Neural Link.");
-      
+      if (!currentUser) return alert("Access Denied. Login Required.");
       const newState = !isFollowing;
       setIsFollowing(newState);
       setFollowersCount(prev => newState ? prev + 1 : prev - 1);
-
       if (newState) {
           await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: profile.id });
-          // Notification Logic here later
       } else {
           await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', profile.id);
       }
@@ -56,17 +49,17 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
                 <img src={profile.avatar_url || "/KRYV.png"} className="w-full h-full object-cover" onError={(e) => e.currentTarget.src="/KRYV.png"}/>
             </div>
             
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-end pt-4 gap-2">
                 {currentUser?.id !== profile.id && (
-                    <button 
-                        onClick={toggleFollow}
-                        className={`px-6 py-1.5 rounded-full font-bold text-sm transition shadow-[0_0_10px_rgba(16,185,129,0.2)] ${isFollowing ? 'bg-transparent border border-gray-600 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}
-                    >
+                    <button onClick={toggleFollow} className={`px-6 py-1.5 rounded-full font-bold text-sm transition shadow-[0_0_10px_rgba(16,185,129,0.2)] ${isFollowing ? 'bg-transparent border border-gray-600 text-white' : 'bg-emerald-600 text-white hover:bg-emerald-500'}`}>
                         {isFollowing ? 'FOLLOWING' : 'FOLLOW'}
                     </button>
                 )}
+                {/* 🔥 EDIT BUTTON */}
                 {currentUser?.id === profile.id && (
-                    <button className="border border-gray-600 text-gray-400 px-6 py-1.5 rounded-full font-bold text-sm">EDIT PROFILE</button>
+                    <button onClick={() => setIsEditing(true)} className="border border-gray-600 text-gray-400 px-6 py-1.5 rounded-full font-bold text-sm hover:text-white hover:border-white transition">
+                        EDIT PROFILE
+                    </button>
                 )}
             </div>
             
@@ -77,7 +70,6 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
                 </h1>
                 <p className="text-gray-500">@{profile.username}</p>
                 <p className="mt-3 text-gray-300 leading-relaxed max-w-lg">{profile.bio || "Neural Identity Active."}</p>
-                
                 <div className="flex gap-4 mt-4 text-sm text-gray-500">
                     <span><strong className="text-white">{followingCount}</strong> Following</span>
                     <span><strong className="text-white">{followersCount}</strong> Followers</span>
@@ -85,6 +77,9 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
                 </div>
             </div>
         </div>
+        
+        {/* 🔥 EDIT MODAL POPUP */}
+        {isEditing && <EditProfileModal profile={profile} onClose={() => setIsEditing(false)} />}
     </div>
   );
 };
