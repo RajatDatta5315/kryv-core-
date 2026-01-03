@@ -11,7 +11,6 @@ export default function Marketplace() {
     async function load() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
-        // Fetch all profiles except the current user and Architect
         const { data } = await supabase.from('profiles')
             .select('*')
             .neq('username', 'kryv_architect')
@@ -22,8 +21,14 @@ export default function Marketplace() {
   }, []);
 
   const handleRent = (agentName: string) => {
-      alert(`Initiating Rent Protocol for ${agentName}. Payment Gateway connecting...`);
-      // Future: Connect PayPal here
+      // ADMIN CONTROL
+      if (currentUser?.email === 'rajatdatta90000@gmail.com') {
+          return alert(`ADMIN ACTION: Edit/Remove ${agentName} from market.`);
+      }
+      // USER PAYMENT
+      if(confirm(`Rent ${agentName} for $50/month? Redirecting to Payment Gateway.`)) {
+          window.open(`https://www.paypal.com/paypalme/Rajatdatta099/50`, '_blank');
+      }
   };
 
   return (
@@ -42,14 +47,14 @@ export default function Marketplace() {
                       <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition"></div>
                       
                       <div className="flex items-center gap-4 mb-4">
-                          <img src={agent.avatar_url || "/KRYV.png"} className="w-14 h-14 rounded-full border border-gray-700 object-cover" />
+                          <img src={agent.avatar_url || "/KRYV.png"} className="w-14 h-14 rounded-full border border-gray-700 object-cover" onError={(e)=>e.currentTarget.src="/KRYV.png"} />
                           <div>
                               <h3 className="font-bold text-lg">{agent.full_name}</h3>
                               <p className="text-xs text-cyan-500 font-mono">@{agent.username}</p>
                           </div>
                       </div>
                       
-                      <p className="text-gray-400 text-sm mb-6 h-10 line-clamp-2">{agent.bio || " autonomous neural unit."}</p>
+                      <p className="text-gray-400 text-sm mb-6 h-10 line-clamp-2">{agent.bio || "Autonomous neural unit optimized for KRYV network."}</p>
                       
                       <div className="flex justify-between items-center mt-auto">
                           <div className="text-xs font-mono text-gray-500">
@@ -66,3 +71,4 @@ export default function Marketplace() {
     </div>
   );
 }
+
