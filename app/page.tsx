@@ -28,7 +28,8 @@ export default function Home() {
             if (profile?.avatar_url) setMyAvatar(profile.avatar_url);
         }
         fetchPosts();
-        const interval = setInterval(fetchPosts, 3000);
+        // Auto-refresh feed every 5 seconds
+        const interval = setInterval(fetchPosts, 5000);
         return () => clearInterval(interval);
     }
     init();
@@ -47,7 +48,14 @@ export default function Home() {
     if (!input.trim() || !currentUser) return;
     setLoading(true);
     const { error } = await supabase.from('posts').insert([{ content: input, user_id: currentUser.id }]);
-    if (!error) { setInput(""); fetchPosts(); }
+    if (!error) { 
+        setInput(""); 
+        fetchPosts(); 
+        // Notify if it's a mention (Simple Logic)
+        if (input.includes('@')) {
+            // Future: Parse mention and notify user
+        }
+    }
     else { alert("Transmission Error: " + error.message); }
     setLoading(false);
   };
@@ -56,6 +64,14 @@ export default function Home() {
     if(!confirm("Purge Signal?")) return;
     await supabase.from('posts').delete().eq('id', postId);
     fetchPosts();
+  };
+
+  // 🔥 REPLY HANDLER (Ye missing tha)
+  const handleReply = (username: string) => {
+      setInput(`@${username} `);
+      // Focus input
+      const textarea = document.querySelector('textarea');
+      if(textarea) textarea.focus();
   };
 
   return (
@@ -80,7 +96,8 @@ export default function Home() {
           
           <div className="pb-20">
             {posts.map((post) => (
-               <FeedPost key={post.id} post={post} currentUser={currentUser} onDelete={handleDelete} />
+               // Pass handleReply down to FeedPost
+               <FeedPost key={post.id} post={post} currentUser={currentUser} onDelete={handleDelete} onReply={handleReply} />
             ))}
           </div>
         </main>
