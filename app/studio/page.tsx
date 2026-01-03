@@ -27,70 +27,80 @@ export default function KryvStudio() {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
         setIsListening(true);
         recognition.start();
+
         recognition.onresult = (event: any) => {
             const text = event.results[0][0].transcript;
             setCommand(text);
             setIsListening(false);
+            handleBuild(text); // Auto-Trigger
         };
+        
         recognition.onerror = () => setIsListening(false);
     } else { alert("Voice Offline"); }
   };
 
   const speak = (text: string) => {
       const synth = window.speechSynthesis;
+      if(synth.speaking) synth.cancel();
+
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = synth.getVoices();
       const aiVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
       if (aiVoice) utterance.voice = aiVoice;
-      utterance.pitch = 0.9; utterance.rate = 1.1; 
+      utterance.pitch = 1.0; 
+      utterance.rate = 1.1; 
+      
+      // 🔥 AUTO-LISTEN AFTER SPEAKING (Conversation Loop)
+      utterance.onend = () => {
+          if (!text.includes("deployed")) { // Don't listen after final success
+              startListening();
+          }
+      };
+      
       synth.speak(utterance);
   };
 
-  const handleBuild = async () => {
-      if(!command.trim()) return;
+  const handleBuild = async (voiceCmd?: string) => {
+      const promptText = voiceCmd || command;
+      if(!promptText.trim()) return;
+      
       setProcessing(true);
       setLogs([]); 
-      
       const ADMIN_EMAIL = "rajatdatta90000@gmail.com";
       const isAdmin = currentUser?.email?.toLowerCase() === ADMIN_EMAIL;
 
-      setLogs(prev => [...prev, `> [SYSTEM]: Initializing Genesis Protocol...`]);
-      setLogs(prev => [...prev, `> [NEHIRA]: Sending Data to Neural Core...`]);
+      setLogs(prev => [...prev, `> [SYSTEM]: Processing: "${promptText}"...`]);
 
       try {
           const response = await fetch('/api/studio/generate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ prompt: command, isAdmin })
+              body: JSON.stringify({ prompt: promptText, isAdmin })
           });
           
           const data = await response.json();
-
-          if(!response.ok) {
-              throw new Error(data.error || `Server Error: ${response.status}`);
-          }
           
           if(data.success) {
               setLogs(prev => [...prev, `> [BLUEPRINT]: ${data.blueprint.name}`]);
-              setLogs(prev => [...prev, `> [ROLE]: ${data.blueprint.role}`]);
-              
               if(isAdmin) {
-                  setLogs(prev => [...prev, `> [DEPLOY]: Writing to Database...`]);
-                  setLogs(prev => [...prev, `> [SUCCESS]: Entity Active.`]);
-                  speak(`Agent ${data.blueprint.name} is online.`);
+                  setLogs(prev => [...prev, `> [DEPLOY]: Success.`]);
+                  speak(`Agent ${data.blueprint.name} deployed. What's next?`);
               } else {
-                  setLogs(prev => [...prev, `> [BILLING]: ${data.blueprint.cost} Required.`]);
-                  setLogs(prev => [...prev, `> [INFO]: Payment Gateway Link Generated.`]);
-                  speak(`Blueprint ready. ${data.blueprint.cost} required.`);
+                  setLogs(prev => [...prev, `> [BILLING]: Payment Required.`]);
+                  speak(`Blueprint ready. Please authorize payment.`);
               }
           } else {
               setLogs(prev => [...prev, `> [ERROR]: ${data.error}`]);
+              speak("System Error. Please retry.");
           }
       } catch (e: any) {
-          setLogs(prev => [...prev, `> [CRITICAL FAILURE]: ${e.message}`]);
-          console.error("Studio Error:", e);
+          setLogs(prev => [...prev, `> [CRITICAL]: ${e.message}`]);
+          speak("Connection Lost.");
       }
       setProcessing(false);
   };
@@ -107,7 +117,7 @@ export default function KryvStudio() {
           <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-6">
               <StudioCore processing={processing} isListening={isListening} startListening={startListening} />
               <StudioLogs logs={logs} />
-              <StudioInput command={command} setCommand={setCommand} handleBuild={handleBuild} processing={processing} startListening={startListening} isListening={isListening} />
+              <StudioInput command={command} setCommand={setCommand} handleBuild={() => handleBuild()} processing={processing} startListening={startListening} />
           </div>
       </div>
     </div>
