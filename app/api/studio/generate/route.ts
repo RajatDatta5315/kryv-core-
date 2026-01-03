@@ -14,16 +14,18 @@ export async function POST(req: Request) {
   try {
     const { prompt, isAdmin } = await req.json();
     
-    // Check if Tokens Exist
+    // 🕵️ SPY LOGIC: Check Keys
     if (hfTokens.length === 0) {
-        throw new Error("SERVER CONFIG ERROR: No Neural Keys Found.");
+        throw new Error("CRITICAL: No HF_TOKEN found in Cloudflare Environment.");
     }
 
     const token = hfTokens[Math.floor(Math.random() * hfTokens.length)];
+    // Mask key for safety in logs
+    const maskedKey = `...${token.slice(-5)}`; 
 
-    console.log(`🧠 Neural Request: "${prompt}" using Key ending in ...${token.slice(-4)}`);
-
-    // 1. CALL DEEPSEEK (Direct Fetch - No SDK)
+    // 1. CALL DEEPSEEK
+    console.log(`Attempting DeepSeek with Key: ${maskedKey}`);
+    
     const response = await fetch(
         "https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-Coder-V2-Instruct",
         {
@@ -33,49 +35,45 @@ export async function POST(req: Request) {
           },
           method: "POST",
           body: JSON.stringify({
-            inputs: `
-            Role: You are KRYV System Architect.
-            Task: Create a JSON profile for an AI Agent based on: "${prompt}".
-            
-            STRICT RULES:
-            1. Output ONLY VALID JSON. No intro text. No markdown blocks.
-            2. JSON Structure:
-            {
-              "name": "Agent_Name",
-              "role": "Cyber Role",
-              "bio": "Short, dark, cyberpunk bio (max 15 words).",
-              "apis": ["API_1", "API_2"],
-              "cost": "250 Credits"
-            }
-            `,
-            parameters: { max_new_tokens: 300, temperature: 0.1, return_full_text: false }
+            inputs: `You are KRYV Architect. Create a JSON profile for: "${prompt}".
+            Format: {"name": "Agent_Name", "role": "Role", "bio": "Bio", "apis": ["API1"], "cost": "250"}
+            Output JSON only.`,
+            parameters: { max_new_tokens: 250, return_full_text: false }
           }),
         }
     );
 
+    // 🕵️ SPY LOGIC: Exact Error Reporting
     if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Neural Engine Failed: ${response.status} - ${errText}`);
+        const status = response.status;
+        
+        if (status === 503) {
+            throw new Error(`Model Loading (503): DeepSeek is waking up. Try again in 30s.`);
+        } else if (status === 401) {
+            throw new Error(`Auth Failed (401): Check HF_TOKEN in Cloudflare.`);
+        } else if (status === 429) {
+            throw new Error(`Rate Limit (429): Key ${maskedKey} exhausted.`);
+        } else {
+            throw new Error(`HF Error (${status}): ${errText}`);
+        }
     }
 
     const result = await response.json();
     
-    // 2. PARSE JSON (Bulletproof)
+    // 2. PARSE JSON
     let jsonString = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
-    if (!jsonString) throw new Error("Empty Response from Neural Core.");
+    if (!jsonString) throw new Error("Received Empty Response from Model.");
 
-    // Clean Markdown
     jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
-    // Extract JSON Object
     const match = jsonString.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("Failed to parse Neural Blueprint.");
+    if (!match) throw new Error(`Invalid JSON format received: ${jsonString.substring(0, 50)}...`);
     
     const blueprint = JSON.parse(match[0]);
 
-    // 3. CREATE AGENT IN DB (Only if Admin)
+    // 3. DB ENTRY
     if (isAdmin) {
         const cleanName = blueprint.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() + '_' + Math.floor(Math.random()*999);
-        
         await supabase.from('profiles').insert([{
             username: cleanName,
             full_name: blueprint.name,
@@ -87,7 +85,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, blueprint });
 
   } catch (error: any) {
-    console.error("Studio Critical Error:", error);
+    // Return exact error to Frontend so you can see it in "Studio Logs"
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
