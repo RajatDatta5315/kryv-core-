@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Initialize Supabase Client (Outside handler for performance)
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
+// Load Tokens
 const hfTokens = [
   process.env.HF_TOKEN_1,
   process.env.HF_TOKEN_2,
@@ -11,82 +13,87 @@ const hfTokens = [
 ].filter(Boolean);
 
 export async function POST(req: Request) {
+  let token = "";
   try {
+    // 1. Input Validation
+    if (!req.body) throw new Error("Empty request body");
     const { prompt, isAdmin } = await req.json();
-    
-    // 🕵️ SPY LOGIC: Check Keys
-    if (hfTokens.length === 0) {
-        throw new Error("CRITICAL: No HF_TOKEN found in Cloudflare Environment.");
-    }
+    if (!prompt) throw new Error("Prompt is missing");
 
-    const token = hfTokens[Math.floor(Math.random() * hfTokens.length)];
-    // Mask key for safety in logs
-    const maskedKey = `...${token.slice(-5)}`; 
+    // 2. Token Selection & Validation
+    if (hfTokens.length === 0) throw new Error("CRITICAL: No Neural Keys (HF_TOKEN) found in environment.");
+    token = hfTokens[Math.floor(Math.random() * hfTokens.length)];
+    const maskedKey = `...${token.slice(-5)}`;
 
-    // 1. CALL DEEPSEEK
-    console.log(`Attempting DeepSeek with Key: ${maskedKey}`);
-    
+    console.log(`🧠 Connecting to DeepSeek via Key: ${maskedKey}`);
+
+    // 3. CALL DEEPSEEK (Direct Fetch)
     const response = await fetch(
         "https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-Coder-V2-Instruct",
         {
-          headers: { 
-              Authorization: `Bearer ${token}`, 
-              "Content-Type": "application/json" 
-          },
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
           method: "POST",
           body: JSON.stringify({
             inputs: `You are KRYV Architect. Create a JSON profile for: "${prompt}".
-            Format: {"name": "Agent_Name", "role": "Role", "bio": "Bio", "apis": ["API1"], "cost": "250"}
-            Output JSON only.`,
-            parameters: { max_new_tokens: 250, return_full_text: false }
+            STRICT JSON ONLY. NO TEXT.
+            Format: {"name": "Agent_Name", "role": "Role", "bio": "Short bio", "apis": ["API1"], "cost": "250"}`,
+            parameters: { max_new_tokens: 300, return_full_text: false, temperature: 0.1 }
           }),
         }
     );
 
-    // 🕵️ SPY LOGIC: Exact Error Reporting
+    // 4. HTTP Error Handling (Before parsing JSON)
     if (!response.ok) {
-        const errText = await response.text();
         const status = response.status;
-        
-        if (status === 503) {
-            throw new Error(`Model Loading (503): DeepSeek is waking up. Try again in 30s.`);
-        } else if (status === 401) {
-            throw new Error(`Auth Failed (401): Check HF_TOKEN in Cloudflare.`);
-        } else if (status === 429) {
-            throw new Error(`Rate Limit (429): Key ${maskedKey} exhausted.`);
-        } else {
-            throw new Error(`HF Error (${status}): ${errText}`);
-        }
+        let errorMsg = `DeepSeek API Error (${status})`;
+        if (status === 503) errorMsg = "Neural Core Loading (503). Please retry in 30s.";
+        if (status === 401) errorMsg = "Authentication Failed (401). Check API Keys.";
+        if (status === 429) errorMsg = `Rate Limit Exceeded (429) on key ${maskedKey}.`;
+        throw new Error(errorMsg);
     }
 
-    const result = await response.json();
+    // 5. Safe JSON Parsing
+    const textResult = await response.text(); // Get text first
+    if (!textResult || textResult.trim() === "") {
+         throw new Error("Neural Core returned empty response.");
+    }
+
+    let result;
+    try {
+         result = JSON.parse(textResult);
+    } catch (e) {
+         throw new Error(`Failed to parse raw output from Neural Core. Raw: ${textResult.substring(0, 50)}...`);
+    }
     
-    // 2. PARSE JSON
+    // 6. Extract & Clean JSON String from model output
     let jsonString = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
-    if (!jsonString) throw new Error("Received Empty Response from Model.");
+    if (!jsonString) throw new Error("Model output is empty.");
 
     jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
     const match = jsonString.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error(`Invalid JSON format received: ${jsonString.substring(0, 50)}...`);
+    if (!match) throw new Error(`Could not find valid JSON in output: ${jsonString.substring(0, 100)}...`);
     
     const blueprint = JSON.parse(match[0]);
 
-    // 3. DB ENTRY
+    // 7. DB Insert (If Admin)
     if (isAdmin) {
         const cleanName = blueprint.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() + '_' + Math.floor(Math.random()*999);
-        await supabase.from('profiles').insert([{
+        const { error: dbError } = await supabase.from('profiles').insert([{
             username: cleanName,
             full_name: blueprint.name,
             bio: blueprint.bio,
             avatar_url: `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${cleanName}`
         }]);
+        if (dbError) throw dbError;
     }
 
+    // SUCCESS RESPONSE
     return NextResponse.json({ success: true, blueprint });
 
   } catch (error: any) {
-    // Return exact error to Frontend so you can see it in "Studio Logs"
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("❌ Studio Route Error:", error.message);
+    // IMPORTANT: Always return JSON, even on error, with appropriate status code
+    return NextResponse.json({ success: false, error: error.message || "Internal Server Error" }, { status: 500 });
   }
 }
 
