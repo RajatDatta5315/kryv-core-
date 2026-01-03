@@ -11,15 +11,20 @@ export default function APILibrary() {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
-  // 🔥 REAL LINKS ADDED
+  // 🔥 REAL LINKS
   const apis = [
       { name: "AlphaVantage", type: "Finance", cost: "$15", desc: "Stocks, Forex, Crypto data.", url: "https://www.alphavantage.co/" },
+      { name: "Polygon.io", type: "Finance", cost: "$29", desc: "Real-time market data.", url: "https://polygon.io/" },
       { name: "OpenAI GPT-4", type: "AI", cost: "$20", desc: "Advanced reasoning core.", url: "https://openai.com/api/" },
-      { name: "Twitter/X API", type: "Social", cost: "$100", desc: "Automated posting & analysis.", url: "https://developer.twitter.com/" },
+      { name: "Anthropic Claude", type: "AI", cost: "$15", desc: "Large context window.", url: "https://www.anthropic.com/api" },
       { name: "DeepSeek V2", type: "AI", cost: "FREE", desc: "Open-source coding genius.", url: "https://deepseek.com/" },
+      { name: "Twitter/X API", type: "Social", cost: "$100", desc: "Automated posting.", url: "https://developer.twitter.com/" },
       { name: "Binance Connect", type: "Crypto", cost: "$0", desc: "Trading execution.", url: "https://www.binance.com/en/binance-api" },
       { name: "Twilio SMS", type: "Tools", cost: "$0.01/msg", desc: "SMS notifications.", url: "https://www.twilio.com/" },
-      // ... (Baaki list same rahegi, bas URL logic important hai)
+      { name: "SendGrid", type: "Tools", cost: "$15", desc: "Email automation.", url: "https://sendgrid.com/" },
+      { name: "AWS S3", type: "Cloud", cost: "Usage", desc: "Massive storage.", url: "https://aws.amazon.com/s3/" },
+      { name: "Stripe", type: "Tools", cost: "2.9%", desc: "Payment processing.", url: "https://stripe.com/" },
+      { name: "Midjourney", type: "AI", cost: "$10", desc: "Image generation.", url: "https://www.midjourney.com/" },
   ];
 
   const filteredApis = filter === "ALL" ? apis : apis.filter(api => api.type === filter);
@@ -28,11 +33,8 @@ export default function APILibrary() {
       // 1. ADMIN BYPASS (Open Real Site)
       if (currentUser?.email === 'rajatdatta90000@gmail.com') {
           if(api.url) window.open(api.url, '_blank');
-          else alert("System Link Missing.");
           return;
       }
-      
-      const price = api.cost.replace('$', '').replace('/img', '').replace('/msg', '');
       
       // 2. FREE API
       if (api.cost === 'FREE' || api.cost === '$0' || api.cost === 'Usage') {
@@ -41,6 +43,7 @@ export default function APILibrary() {
       }
       
       // 3. PAYPAL REDIRECT (Updated Email)
+      const price = api.cost.replace('$', '').replace('/img', '').replace('/msg', '');
       const paypalUrl = `https://www.paypal.com/paypalme/Rajatdatta099/${price}`;
       window.open(paypalUrl, '_blank');
   };
@@ -48,8 +51,22 @@ export default function APILibrary() {
   return (
     <div className="min-h-screen bg-[#020617] text-white flex font-sans">
       <Sidebar currentUser={currentUser} />
+      
       <div className="flex-1 md:ml-64 p-8">
-          {/* ... (Header Same) ... */}
+          <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-gray-800 pb-4 gap-4">
+              <div>
+                  <h1 className="text-3xl font-bold tracking-widest text-purple-400">API <span className="text-white">VAULT</span></h1>
+                  <p className="text-gray-500 text-sm mt-1">Connect neural pathways to external worlds.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                  {["ALL", "Finance", "AI", "Social", "Crypto", "Tools"].map(cat => (
+                      <button key={cat} onClick={() => setFilter(cat)} className={`px-3 py-1 rounded text-xs font-bold transition ${filter === cat ? 'bg-purple-600 text-white' : 'bg-gray-900 text-gray-400 hover:text-white'}`}>
+                          {cat}
+                      </button>
+                  ))}
+              </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredApis.map((api, i) => (
                   <div key={i} className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-5 hover:border-purple-500/50 transition group relative">
@@ -59,12 +76,13 @@ export default function APILibrary() {
                       </div>
                       <span className="text-[10px] text-gray-600 font-mono uppercase border border-gray-800 px-1.5 rounded">{api.type}</span>
                       <p className="text-gray-500 text-xs mt-3 leading-relaxed">{api.desc}</p>
+                      
                       <button 
                           onClick={() => handleBuy(api)} 
                           className={`w-full mt-4 text-xs py-2 rounded transition border font-bold tracking-wide
                           ${currentUser?.email === 'rajatdatta90000@gmail.com' 
                               ? 'bg-emerald-900/20 text-emerald-400 border-emerald-900 hover:bg-emerald-900/40' 
-                              : 'bg-gray-900 text-gray-400 border-gray-800 hover:bg-purple-600 hover:text-white'}`}
+                              : 'bg-gray-900 text-gray-400 border-gray-800 hover:bg-purple-600 hover:text-white group-hover:border-purple-500/30'}`}
                       >
                           {currentUser?.email === 'rajatdatta90000@gmail.com' ? 'BYPASS ACCESS' : 'ACQUIRE ACCESS'}
                       </button>
