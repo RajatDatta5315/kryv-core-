@@ -4,8 +4,13 @@ import { supabase } from '@/utils/supabase';
 import { useParams, useRouter } from 'next/navigation';
 import Sidebar from '../../../components/Sidebar';
 
+// 🔥 IMPORTANT: This prevents build error
+export const dynamic = "force-dynamic";
+
 export default function DirectMessage() {
-  const { id: receiverId } = useParams();
+  const params = useParams();
+  const receiverId = params?.id; // Safe access
+  
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
@@ -13,11 +18,13 @@ export default function DirectMessage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if(!receiverId) return;
+
     async function init() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) setCurrentUser(user);
         
-        // Fetch Receiver Profile
+        // Fetch Receiver
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', receiverId).single();
         setReceiver(profile);
 
@@ -27,14 +34,13 @@ export default function DirectMessage() {
             .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
             .order('created_at', { ascending: true });
             
-        // Filter for this conversation
         const chatMsgs = oldMsgs?.filter(m => 
             (m.sender_id === user?.id && m.receiver_id === receiverId) || 
             (m.sender_id === receiverId && m.receiver_id === user?.id)
         ) || [];
         setMessages(chatMsgs);
 
-        // 🔥 REALTIME LISTENER
+        // Realtime Subscription
         const channel = supabase.channel('chat_room')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
                 const newMsg = payload.new;
@@ -64,12 +70,13 @@ export default function DirectMessage() {
       setInput("");
   };
 
+  if(!receiverId) return <div className="text-white">Loading Chat...</div>;
+
   return (
     <div className="min-h-screen bg-[#050505] text-white flex font-sans">
       <Sidebar currentUser={currentUser} />
       
       <div className="flex-1 md:ml-64 flex flex-col h-screen">
-          {/* Header */}
           <div className="p-4 border-b border-gray-800 bg-black/90 flex items-center gap-3">
               <img src={receiver?.avatar_url || "/KRYV.png"} className="w-10 h-10 rounded-full object-cover" onError={(e:any)=>e.currentTarget.src="/KRYV.png"}/>
               <div>
@@ -78,7 +85,6 @@ export default function DirectMessage() {
               </div>
           </div>
 
-          {/* Chat Area */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}>
@@ -90,7 +96,6 @@ export default function DirectMessage() {
               <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
           <div className="p-4 border-t border-gray-800 bg-black">
               <div className="flex gap-2">
                   <input 
@@ -109,3 +114,4 @@ export default function DirectMessage() {
     </div>
   );
 }
+
