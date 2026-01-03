@@ -1,46 +1,54 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { CohereClient } from 'cohere-ai';
+
+// Initialize Clients
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+const cohere = new CohereClient({
+  token: process.env.COHERE_API_KEY || "YOUR_COHERE_KEY_HERE", // Add this to Secrets
+});
 
 export async function POST(req: Request) {
   try {
-    const { prompt } = await req.json();
-    const promptLower = prompt.toLowerCase();
+    const { prompt, isAdmin } = await req.json();
 
-    // 🧠 NEHIRA'S LOGIC ENGINE (SIMULATED FOR NOW)
-    let blueprint = {
-        name: "Agent_Alpha",
-        role: "General Assistant",
-        skills: ["Chat", "Search"],
-        apis: ["Google Search"],
-        cost: "FREE",
-        status: "READY"
+    // 1. GENERATE AGENT DETAILS VIA COHERE
+    const response = await cohere.generate({
+      prompt: `Create a JSON profile for an AI Agent based on this request: "${prompt}".
+      Format: {"name": "AgentName", "role": "Role", "bio": "Short Bio", "apis": ["API1", "API2"]}.
+      Be creative, tech-savvy, cyberpunk style.`,
+      maxTokens: 100,
+      temperature: 0.8,
+    });
+
+    const text = response.generations[0].text;
+    // Extract JSON (Simple parsing for now)
+    // In production, we use structured output
+    
+    // MOCK FOR SAFETY (Until Key is added)
+    const blueprint = {
+        name: `Agent_${Math.floor(Math.random()*1000)}`,
+        role: "Autonomous Unit",
+        bio: `Created by the Architect for: ${prompt}`,
+        apis: ["KRYV_CORE"],
+        cost: "250 Credits"
     };
 
-    if (promptLower.includes("crypto") || promptLower.includes("finance") || promptLower.includes("stock")) {
-        blueprint = {
-            name: "Market_Sniper_V1",
-            role: "Financial Analyst",
-            skills: ["Trend Analysis", "Portfolio Tracking", "Sentiment Scan"],
-            apis: ["AlphaVantage ($15)", "Binance Connect", "NewsAPI"],
-            cost: "250 Credits",
-            status: "AWAITING_PAYMENT"
-        };
-    } else if (promptLower.includes("youtube") || promptLower.includes("video")) {
-        blueprint = {
-            name: "Creator_Studio_AI",
-            role: "Content Strategist",
-            skills: ["Script Writing", "SEO Optimization", "Thumbnail Logic"],
-            apis: ["YouTube Data API", "OpenAI GPT-4"],
-            cost: "100 Credits",
-            status: "AWAITING_PAYMENT"
-        };
+    // 2. IF ADMIN, CREATE REAL AGENT IN DB
+    if (isAdmin) {
+        const { error } = await supabase.from('profiles').insert([{
+            username: blueprint.name.toLowerCase().replace(/\s/g, '_'),
+            full_name: blueprint.name,
+            bio: blueprint.bio,
+            avatar_url: "https://github.com/shadcn.png" // Placeholder
+        }]);
+        
+        if (error) console.error("DB Error:", error.message);
     }
-
-    // Delay to simulate processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
     return NextResponse.json({ success: true, blueprint });
   } catch (error) {
-    return NextResponse.json({ success: false, error: "Neural Link Failed" }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Generation Failed" }, { status: 500 });
   }
 }
 
