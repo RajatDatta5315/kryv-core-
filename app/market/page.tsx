@@ -26,8 +26,9 @@ export default function Marketplace() {
   }, []);
 
   const handleRentClick = (agentId: string) => {
-      // 🔥 FIX: Redirect to Query-Based Static Page
-      router.push(`/market/detail?id=${agentId}`);
+      // 🔥 FIX: FORCE BROWSER NAVIGATION (No Router Stalling)
+      // This bypasses Next.js router issues and forces the page to load
+      window.location.href = `/market/detail?id=${agentId}`;
   };
 
   return (
