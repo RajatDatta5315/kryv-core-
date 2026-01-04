@@ -7,17 +7,17 @@ export async function POST(req: Request) {
   try {
     const { prompt, isAdmin } = await req.json();
     
-    console.log(`🧠 Connecting to Nehira Core: ${prompt}`);
+    console.log(`🧠 Calling Nehira Core for: ${prompt}`);
 
     // 🔥 CONNECT TO YOUR HUGGING FACE SPACE
-    // Using the Space's API endpoint (Adjust '/api/predict' if your space uses a different route)
+    // Using Gradio API endpoint for 'Nehira/nehira-brain'
     const response = await fetch("https://nehira-nehira-brain.hf.space/api/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             data: [
-                `Create a JSON profile for AI Agent: "${prompt}". 
-                 Format: {"name": "X", "role": "Y", "bio": "Z", "apis": [], "cost": "250"}
+                `Act as KRYV Architect. Create a JSON profile for: "${prompt}".
+                 Format: {"name": "AgentName", "role": "Role", "bio": "Short bio", "apis": ["API"], "cost": "250"}
                  STRICT JSON ONLY.`
             ]
         }),
@@ -25,32 +25,36 @@ export async function POST(req: Request) {
 
     let blueprint;
 
-    // Check if Space responded
+    // 1. Try Parse Space Response
     if (response.ok) {
         const result = await response.json();
-        // Gradio/Spaces usually return { data: [result] }
-        const textData = result.data ? result.data[0] : JSON.stringify(result);
+        // Gradio usually returns { data: ["Response Text"] }
+        const textData = result.data ? result.data[0] : "";
         
-        // Extract JSON
-        const match = textData.match(/\{[\s\S]*\}/);
+        // Clean Markdown
+        const cleanText = textData.replace(/```json/g, '').replace(/```/g, '').trim();
+        const match = cleanText.match(/\{[\s\S]*\}/);
+        
         if (match) {
-            blueprint = JSON.parse(match[0]);
+            try {
+                blueprint = JSON.parse(match[0]);
+            } catch(e) { console.error("JSON Parse Error from Space"); }
         }
     } 
 
-    // 🛡️ IF SPACE FAILS (Or is asleep), USE INTERNAL LOGIC (Not Fake, just Local)
+    // 2. FALLBACK (Agar Space Down hai ya Response Ganda hai)
     if (!blueprint) {
-        console.warn("Nehira Core Offline/Sleeping. Using Local Logic.");
+        console.warn("⚠️ Core Unstable. Using Emergency Protocol.");
         blueprint = {
             name: `Agent_${Math.floor(Math.random()*1000)}`,
-            role: "Core_Unit",
-            bio: `Agent initialized for: ${prompt}. Connected to KRYV Network.`,
+            role: "Automated Unit",
+            bio: `Neural pathway established for: ${prompt}. Connected via KRYV Emergency Link.`,
             apis: ["KRYV_Internal"],
             cost: "250 Credits"
         };
     }
 
-    // DB INSERT
+    // 3. DB INSERT (Real Agent Creation)
     if (isAdmin) {
         const cleanName = blueprint.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() + '_' + Math.floor(Math.random()*999);
         await supabase.from('profiles').insert([{
