@@ -13,7 +13,6 @@ export default function Marketplace() {
     async function load() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
-        // Fetch Agents
         const { data } = await supabase.from('profiles')
             .select('*')
             .neq('username', 'kryv_architect')
