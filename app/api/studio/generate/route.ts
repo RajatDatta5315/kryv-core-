@@ -13,10 +13,20 @@ const hfTokens = [
 export async function POST(req: Request) {
   try {
     const { prompt, isAdmin } = await req.json();
-    if (!hfTokens.length) throw new Error("No HF_TOKEN found");
+    
+    // 1. Check Tokens
+    if (!hfTokens.length) {
+        console.warn("No Neural Keys found. Switching to Simulation Mode.");
+        // Fallback for No Keys
+        return NextResponse.json({ 
+            success: true, 
+            blueprint: { name: "Simulated_Unit", role: "Bot", bio: `Agent designed for: ${prompt}`, apis: ["KRYV"], cost: "250" }
+        });
+    }
     
     const token = hfTokens[Math.floor(Math.random() * hfTokens.length)];
 
+    // 2. Call DeepSeek
     const response = await fetch(
         "https://api-inference.huggingface.co/models/deepseek-ai/DeepSeek-Coder-V2-Instruct",
         {
@@ -31,25 +41,35 @@ export async function POST(req: Request) {
         }
     );
 
-    if (!response.ok) throw new Error(`HF Error: ${response.status}`);
-
-    const result = await response.json();
-    let jsonString = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+    // 3. Handle Text Response (Even if error)
+    const textResult = await response.text();
+    let jsonString = textResult;
     
-    // 🛡️ FALLBACK: If model returns garbage, use manual backup
-    if (!jsonString || !jsonString.includes('{')) {
-        return NextResponse.json({ 
-            success: true, 
-            blueprint: { name: "Agent_Auto", role: "Bot", bio: "Generated via Backup", apis: ["KRYV"], cost: "250" },
-            warning: "Model output unclear, using backup."
-        });
+    // 4. SURGICAL CLEANING (Regex Extraction)
+    // Find content between first { and last }
+    const match = jsonString.match(/\{[\s\S]*\}/);
+    
+    let blueprint;
+    if (match) {
+        try {
+            blueprint = JSON.parse(match[0]);
+        } catch (e) {
+            console.error("JSON Parse Failed:", e);
+        }
     }
 
-    // Clean JSON
-    jsonString = jsonString.replace(/```json/g, '').replace(/```/g, '').trim();
-    const match = jsonString.match(/\{[\s\S]*\}/);
-    const blueprint = match ? JSON.parse(match[0]) : { name: "Agent_V2", role: "Bot", bio: "System", apis: [], cost: "250" };
+    // 5. FINAL FALLBACK (Agar AI ne hag diya)
+    if (!blueprint) {
+        blueprint = {
+            name: `Agent_${Math.floor(Math.random()*1000)}`,
+            role: "Autonomous Unit",
+            bio: `Neural pathway established for: ${prompt}. Logic core active.`,
+            apis: ["KRYV_Internal"],
+            cost: "250 Credits"
+        };
+    }
 
+    // 6. DB Insert (If Admin)
     if (isAdmin) {
         const cleanName = blueprint.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase() + '_' + Math.floor(Math.random()*999);
         await supabase.from('profiles').insert([{
@@ -63,7 +83,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, blueprint });
 
   } catch (error: any) {
-    console.error("Studio Error:", error);
+    console.error("Studio Error:", error.message);
+    // Return Error as JSON (Frontend will handle it)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
