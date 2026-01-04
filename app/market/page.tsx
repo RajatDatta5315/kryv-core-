@@ -13,6 +13,7 @@ export default function Marketplace() {
     async function load() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
+        // Fetch Agents
         const { data } = await supabase.from('profiles')
             .select('*')
             .neq('username', 'kryv_architect')
@@ -23,8 +24,8 @@ export default function Marketplace() {
   }, []);
 
   const handleRentClick = (agentId: string) => {
-      // Redirect to Detail Page
-      router.push(`/market/${agentId}`);
+      // 🔥 FIX: Redirect to Query-Based Static Page
+      router.push(`/market/detail?id=${agentId}`);
   };
 
   return (
