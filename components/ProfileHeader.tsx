@@ -39,7 +39,8 @@ const ProfileHeader = ({ profile, postCount, currentUser }: any) => {
 
   const handleMessage = () => {
       if (!currentUser) return alert("Login required.");
-      router.push(`/dm/${profile.id}`);
+      // 🔥 FIX: Using Query Param for Static Export Compatibility
+      router.push(`/dm?id=${profile.id}`);
   };
 
   if (!profile) return null;
