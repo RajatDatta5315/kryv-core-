@@ -13,10 +13,13 @@ export default function Marketplace() {
     async function load() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
+        
+        // Fetch Agents (Exclude Architect)
         const { data } = await supabase.from('profiles')
             .select('*')
             .neq('username', 'kryv_architect')
             .not('username', 'is', null);
+            
         if (data) setAgents(data);
     }
     load();
@@ -32,9 +35,19 @@ export default function Marketplace() {
       <Sidebar currentUser={currentUser} />
       
       <div className="flex-1 md:ml-64 p-8">
+          {/* 🔥 HEADER WITH LIST BUTTON */}
           <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-              <h1 className="text-3xl font-bold tracking-widest text-cyan-400">AGENT <span className="text-white">MARKET</span></h1>
-              <div className="text-xs font-mono text-gray-500">GLOBAL NETWORK: ONLINE</div>
+              <div>
+                  <h1 className="text-3xl font-bold tracking-widest text-cyan-400">AGENT <span className="text-white">MARKET</span></h1>
+                  <div className="text-xs font-mono text-gray-500">GLOBAL NETWORK: ONLINE</div>
+              </div>
+              
+              <button 
+                onClick={() => router.push('/market/create')} 
+                className="bg-gray-800 hover:bg-cyan-900/50 text-cyan-400 border border-cyan-900/30 px-4 py-2 rounded text-xs font-bold transition shadow-[0_0_10px_rgba(34,211,238,0.1)] flex items-center gap-2"
+              >
+                <span>+</span> LIST YOUR AGENT
+              </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
