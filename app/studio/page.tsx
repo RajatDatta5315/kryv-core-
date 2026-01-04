@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar';
 import StudioHeader from '../../components/studio/StudioHeader';
 import StudioCore from '../../components/studio/StudioCore';
@@ -13,16 +13,23 @@ export default function KryvStudio() {
   const [processing, setProcessing] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
+  
+  // Ref to handle voice loop state preventing infinite loops on error
+  const isSpeaking = useRef(false);
 
   useEffect(() => {
     async function getUser() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
+        // 🔥 AUTO START: Greet User on Load (Browser might block auto-audio, requires one interaction usually)
+        setTimeout(() => speak("Neural Link Established. What are we building?"), 1000);
     }
     getUser();
   }, []);
 
   const startListening = () => {
+    if (isSpeaking.current) return; // Don't listen if speaking
+    
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
@@ -31,16 +38,18 @@ export default function KryvStudio() {
         recognition.maxAlternatives = 1;
 
         setIsListening(true);
-        recognition.start();
+        try { recognition.start(); } catch(e) { console.log("Mic already active"); }
 
         recognition.onresult = (event: any) => {
             const text = event.results[0][0].transcript;
             setCommand(text);
             setIsListening(false);
-            handleBuild(text); // Auto-Trigger
+            // 🔥 AUTO-SUBMIT: Got voice, send to brain immediately
+            handleBuild(text); 
         };
         
         recognition.onerror = () => setIsListening(false);
+        recognition.onend = () => setIsListening(false);
     } else { alert("Voice Offline"); }
   };
 
@@ -48,16 +57,21 @@ export default function KryvStudio() {
       const synth = window.speechSynthesis;
       if(synth.speaking) synth.cancel();
 
+      isSpeaking.current = true;
+      setIsListening(false); // Stop listening while speaking
+
       const utterance = new SpeechSynthesisUtterance(text);
       const voices = synth.getVoices();
-      const aiVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha'));
+      const aiVoice = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Zira'));
       if (aiVoice) utterance.voice = aiVoice;
       utterance.pitch = 1.0; 
       utterance.rate = 1.1; 
       
-      // 🔥 AUTO-LISTEN AFTER SPEAKING (Conversation Loop)
+      // 🔥 THE LOOP: Once she stops talking, start listening again
       utterance.onend = () => {
-          if (!text.includes("deployed")) { // Don't listen after final success
+          isSpeaking.current = false;
+          // Only continue loop if we didn't just deploy (to avoid mic open on success screen)
+          if (!text.includes("deployed")) {
               startListening();
           }
       };
@@ -83,24 +97,34 @@ export default function KryvStudio() {
               body: JSON.stringify({ prompt: promptText, isAdmin })
           });
           
-          const data = await response.json();
+          // 🔥 SAFE PARSING to prevent "Unexpected end of JSON"
+          const textData = await response.text();
+          let data;
+          try {
+               data = JSON.parse(textData);
+          } catch(e) {
+               throw new Error("Neural Core connection unstable. (Invalid JSON)");
+          }
           
           if(data.success) {
               setLogs(prev => [...prev, `> [BLUEPRINT]: ${data.blueprint.name}`]);
+              setLogs(prev => [...prev, `> [ROLE]: ${data.blueprint.role}`]);
+              
               if(isAdmin) {
-                  setLogs(prev => [...prev, `> [DEPLOY]: Success.`]);
-                  speak(`Agent ${data.blueprint.name} deployed. What's next?`);
+                  setLogs(prev => [...prev, `> [DEPLOY]: Writing to Database...`]);
+                  setLogs(prev => [...prev, `> [SUCCESS]: Entity Active.`]);
+                  speak(`Agent ${data.blueprint.name} has been deployed to the network.`);
               } else {
-                  setLogs(prev => [...prev, `> [BILLING]: Payment Required.`]);
-                  speak(`Blueprint ready. Please authorize payment.`);
+                  setLogs(prev => [...prev, `> [BILLING]: 500 Credits Required.`]);
+                  speak(`Blueprint for ${data.blueprint.name} is ready. Payment required to deploy.`);
               }
           } else {
               setLogs(prev => [...prev, `> [ERROR]: ${data.error}`]);
-              speak("System Error. Please retry.");
+              speak("I encountered an error. Please say that again.");
           }
       } catch (e: any) {
           setLogs(prev => [...prev, `> [CRITICAL]: ${e.message}`]);
-          speak("Connection Lost.");
+          speak("Connection interrupted. Trying to reconnect.");
       }
       setProcessing(false);
   };
@@ -115,9 +139,9 @@ export default function KryvStudio() {
           <StudioHeader currentUser={currentUser} />
           
           <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-6">
-              <StudioCore processing={processing} isListening={isListening} startListening={startListening} />
+              <StudioCore processing={processing} isListening={isListening} startListening={() => { speak("I am listening."); }} />
               <StudioLogs logs={logs} />
-              <StudioInput command={command} setCommand={setCommand} handleBuild={() => handleBuild()} processing={processing} startListening={startListening} />
+              <StudioInput command={command} setCommand={setCommand} handleBuild={() => handleBuild()} processing={processing} startListening={startListening} isListening={isListening} />
           </div>
       </div>
     </div>
