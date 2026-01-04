@@ -16,8 +16,6 @@ export const API_KEYS_STORE: Record<string, string | undefined> = {
 
 // Function to retrieve key (Simulated Security)
 export function getSecureKey(serviceName: string) {
-    // In production, this would fetch from a secure encrypted DB table
-    // ensuring the user has enough credits.
     const key = API_KEYS_STORE[serviceName];
     if (!key) return null;
     return `sk-live-*************${key.slice(-4)}`; // Masked return for frontend
