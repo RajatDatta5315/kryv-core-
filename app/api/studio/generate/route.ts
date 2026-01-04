@@ -6,19 +6,9 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 export async function POST(req: Request) {
   try {
     const { prompt, isAdmin } = await req.json();
-    
-    // 1. CHECK AUTH & CREDITS
-    const { data: { user } } = await supabase.auth.getUser(); // Get current user
-    // Note: Since this is server-side, we ideally need the user's access token or ID passed in body.
-    // For MVP, we assume Admin bypass or we check the user from the session if passed.
-    
-    // Assuming 'isAdmin' check is enough for now, BUT let's enforce Logic if we had user ID.
-    // Real implementation requires passing User ID from frontend. Let's assume passed in body for now?
-    // Actually, let's keep it simple: If not Admin, we simulate Credit Check.
-    
-    // 🧠 CALLING NEHIRA CORE (Your Hugging Face Space)
-    console.log(`🧠 Calling Nehira Core for: ${prompt}`);
-    
+    console.log(`🧠 Calling Nehira Core (Hugging Face): ${prompt}`);
+
+    // 🔥 REAL CONNECTION TO YOUR SPACE
     const response = await fetch("https://nehira-nehira-brain.hf.space/api/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -26,32 +16,31 @@ export async function POST(req: Request) {
             data: [
                 `Act as KRYV Architect. Create a JSON profile for: "${prompt}".
                  Format: {"name": "AgentName", "role": "Role", "bio": "Short bio", "apis": ["API"], "cost": "250"}
-                 STRICT JSON ONLY.`
+                 STRICT JSON ONLY. NO MARKDOWN.`
             ]
         }),
     });
 
     let blueprint;
 
-    // Parse Response
     if (response.ok) {
         const result = await response.json();
-        const textData = result.data ? result.data[0] : "";
-        const cleanText = textData.replace(/```json/g, '').replace(/```/g, '').trim();
-        const match = cleanText.match(/\{[\s\S]*\}/);
-        if (match) try { blueprint = JSON.parse(match[0]); } catch(e) {}
-    } 
-
-    // Fallback
-    if (!blueprint) {
-        blueprint = {
-            name: `Agent_${Math.floor(Math.random()*1000)}`,
-            role: "Automated Unit",
-            bio: `Neural pathway established for: ${prompt}.`,
-            apis: ["KRYV_Internal"],
-            cost: "250 Credits"
-        };
+        // Gradio API returns data array
+        const textData = result.data ? result.data[0] : null;
+        
+        if (textData) {
+            // Clean JSON string
+            const cleanText = textData.replace(/```json/g, '').replace(/```/g, '').trim();
+            const match = cleanText.match(/\{[\s\S]*\}/);
+            if (match) {
+                 blueprint = JSON.parse(match[0]);
+            }
+        }
+    } else {
+        throw new Error(`Nehira Core Error: ${response.status} ${response.statusText}`);
     }
+
+    if (!blueprint) throw new Error("Nehira Core returned invalid format.");
 
     // DB INSERT
     if (isAdmin) {
@@ -62,16 +51,12 @@ export async function POST(req: Request) {
             bio: blueprint.bio,
             avatar_url: `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${cleanName}`
         }]);
-    } else {
-        // NON-ADMIN: CHECK CREDITS
-        // We need to return the blueprint but tell frontend to deduct credit or show "Out of Credits"
-        // For MVP, we send a flag.
-        return NextResponse.json({ success: true, blueprint, requiresCredit: true });
     }
 
     return NextResponse.json({ success: true, blueprint });
 
   } catch (error: any) {
+    console.error("Studio Error:", error.message);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
