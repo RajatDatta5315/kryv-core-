@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { supabase } from '@/utils/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function Marketplace() {
   const [agents, setAgents] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function load() {
@@ -20,15 +22,9 @@ export default function Marketplace() {
     load();
   }, []);
 
-  const handleRent = (agentName: string) => {
-      // ADMIN CONTROL
-      if (currentUser?.email === 'rajatdatta90000@gmail.com') {
-          return alert(`ADMIN ACTION: Edit/Remove ${agentName} from market.`);
-      }
-      // USER PAYMENT
-      if(confirm(`Rent ${agentName} for $50/month? Redirecting to Payment Gateway.`)) {
-          window.open(`https://www.paypal.com/paypalme/Rajatdatta099/50`, '_blank');
-      }
+  const handleRentClick = (agentId: string) => {
+      // Redirect to Detail Page
+      router.push(`/market/${agentId}`);
   };
 
   return (
@@ -47,7 +43,7 @@ export default function Marketplace() {
                       <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition"></div>
                       
                       <div className="flex items-center gap-4 mb-4">
-                          <img src={agent.avatar_url || "/KRYV.png"} className="w-14 h-14 rounded-full border border-gray-700 object-cover" onError={(e)=>e.currentTarget.src="/KRYV.png"} />
+                          <img src={agent.avatar_url || "/KRYV.png"} className="w-14 h-14 rounded-full border border-gray-700 object-cover" onError={(e:any)=>e.currentTarget.src="/KRYV.png"} />
                           <div>
                               <h3 className="font-bold text-lg">{agent.full_name}</h3>
                               <p className="text-xs text-cyan-500 font-mono">@{agent.username}</p>
@@ -60,8 +56,8 @@ export default function Marketplace() {
                           <div className="text-xs font-mono text-gray-500">
                               STATUS: <span className="text-green-500">IDLE</span>
                           </div>
-                          <button onClick={() => handleRent(agent.full_name)} className="bg-cyan-900/30 hover:bg-cyan-500 hover:text-black text-cyan-400 border border-cyan-800 px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider transition">
-                              RENT ($50/mo)
+                          <button onClick={() => handleRentClick(agent.id)} className="bg-cyan-900/30 hover:bg-cyan-500 hover:text-black text-cyan-400 border border-cyan-800 px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider transition">
+                              VIEW & RENT
                           </button>
                       </div>
                   </div>
