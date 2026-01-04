@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 function MarketDetailContent() {
   const searchParams = useSearchParams();
-  const id = searchParams.get('id'); // Get ID from URL query
+  const id = searchParams.get('id');
   
   const [agent, setAgent] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -20,8 +20,6 @@ function MarketDetailContent() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
         if(!id) return;
-        
-        // Fetch Agent Details
         const { data } = await supabase.from('profiles').select('*').eq('id', id).single();
         setAgent(data);
     }
@@ -43,8 +41,8 @@ function MarketDetailContent() {
 
           alert(`Order Initiated for ${agent.full_name}. Redirecting to Payment Gateway...`);
           
-          // 2. REDIRECT TO PAYPAL
-          window.open(`https://www.paypal.com/paypalme/RajatDatta482/50`, '_blank');
+          // 2. REDIRECT TO PAYPAL (Force Navigation)
+          window.location.href = `https://www.paypal.com/paypalme/RajatDatta482/50`;
       } catch (err) {
           alert("System Error. Check Console.");
       }
@@ -56,8 +54,6 @@ function MarketDetailContent() {
   return (
     <div className="flex-1 md:ml-64 p-8 flex flex-col items-center">
         <div className="max-w-3xl w-full bg-black border border-cyan-900/50 rounded-2xl p-8 shadow-[0_0_50px_rgba(8,145,178,0.1)] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
             <div className="flex items-center gap-6 mb-8 relative z-10">
                 <img src={agent.avatar_url || "/KRYV.png"} className="w-24 h-24 rounded-full border-2 border-cyan-500 shadow-[0_0_20px_rgba(34,211,238,0.3)]" onError={(e:any)=>e.currentTarget.src="/KRYV.png"} />
                 <div>
@@ -72,41 +68,25 @@ function MarketDetailContent() {
                     <p className="text-xl text-gray-200 leading-relaxed font-light">{agent.bio || "No directive set."}</p>
                 </div>
                 
-                <div>
-                     <h3 className="text-gray-500 text-xs uppercase font-bold mb-3 tracking-widest">System Capabilities</h3>
-                     <div className="grid grid-cols-2 gap-4">
-                         <div className="bg-gray-900/50 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-                             <span className="text-xl">⚡</span> <span className="text-sm font-bold text-gray-300">High Frequency</span>
-                         </div>
-                         <div className="bg-gray-900/50 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-                             <span className="text-xl">🧠</span> <span className="text-sm font-bold text-gray-300">DeepSeek Core</span>
-                         </div>
-                         <div className="bg-gray-900/50 border border-gray-800 p-4 rounded-xl flex items-center gap-3">
-                             <span className="text-xl">🔗</span> <span className="text-sm font-bold text-gray-300">API Connected</span>
-                         </div>
-                     </div>
+                <div className="mt-12 border-t border-gray-800 pt-8 flex justify-between items-center relative z-10">
+                    <div>
+                        <span className="text-4xl font-bold text-white">$50</span>
+                        <span className="text-gray-500 text-sm"> / month</span>
+                    </div>
+                    <button 
+                      onClick={handleRent} 
+                      disabled={processing}
+                      className="bg-cyan-600 hover:bg-cyan-500 text-black font-bold px-10 py-4 rounded-xl transition shadow-[0_0_30px_rgba(8,145,178,0.4)] disabled:opacity-50"
+                    >
+                        {processing ? "PROCESSING..." : "INITIATE RENT PROTOCOL"}
+                    </button>
                 </div>
-            </div>
-
-            <div className="mt-12 border-t border-gray-800 pt-8 flex justify-between items-center relative z-10">
-                <div>
-                    <span className="text-4xl font-bold text-white">$50</span>
-                    <span className="text-gray-500 text-sm"> / month</span>
-                </div>
-                <button 
-                  onClick={handleRent} 
-                  disabled={processing}
-                  className="bg-cyan-600 hover:bg-cyan-500 text-black font-bold px-10 py-4 rounded-xl transition shadow-[0_0_30px_rgba(8,145,178,0.4)] disabled:opacity-50"
-                >
-                    {processing ? "PROCESSING..." : "INITIATE RENT PROTOCOL"}
-                </button>
             </div>
         </div>
     </div>
   );
 }
 
-// WRAPPER FOR BUILD SAFETY
 export default function MarketDetailPage() {
     return (
         <div className="min-h-screen bg-[#050505] text-white flex font-sans">
