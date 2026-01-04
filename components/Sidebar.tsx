@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,13 +16,11 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
 
   return (
     <aside className="w-64 border-r border-gray-800 p-6 hidden md:flex flex-col fixed h-full bg-[#050505] z-10">
-      {/* BRANDING */}
       <div className="mb-8 flex items-center gap-2">
         <img src="/KRYV.png" className="h-8 w-8 object-contain" onError={(e) => e.currentTarget.style.display='none'} />
         <h1 className="text-2xl font-bold tracking-widest text-white">KRYV<span className="text-emerald-500">_</span></h1>
       </div>
       
-      {/* 🔍 SEARCH BAR */}
       <div className="mb-6 relative">
           <input 
             type="text" 
@@ -39,6 +38,10 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
             <span className="text-emerald-500">#</span> Feed
          </Link>
          
+         <Link href="/dm" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-white hover:bg-white/5 p-3 rounded-xl transition-all">
+            <span className="text-blue-500">💬</span> Messages
+         </Link>
+         
          <Link href="/notifications" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-white hover:bg-white/5 p-3 rounded-xl transition-all group">
             <span className="text-gray-600 group-hover:text-pink-500 transition">@</span> Notifications
          </Link>
@@ -47,7 +50,6 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
             <span className="text-gray-600">#</span> Studio
          </Link>
 
-         {/* 🔥 NEW LINKS: MARKET & VAULT */}
          <Link href="/market" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/10 p-3 rounded-xl transition-all">
             <span className="text-cyan-600">★</span> Market
          </Link>
@@ -61,7 +63,6 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
          </Link>
       </nav>
       
-      {/* USER PROFILE */}
       {currentUser && (
           <Link href={`/profile?id=${currentUser.id}`} className="mt-auto p-3 rounded-xl bg-gray-900/50 flex items-center gap-3 border border-gray-800 cursor-pointer hover:border-emerald-500/50 transition hover:bg-gray-800">
               <img 
