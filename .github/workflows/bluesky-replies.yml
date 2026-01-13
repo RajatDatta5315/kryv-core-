@@ -2,7 +2,8 @@ name: KRYV Auto-Reply Bot
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Har 30 minute mein check karega
+    - cron: '*/30 * * * *' 
+  workflow_dispatch: # 🔥 Ye button laayega
 
 jobs:
   reply:
@@ -15,9 +16,9 @@ jobs:
           node-version: 20
       - name: Install Deps
         run: npm install @atproto/api
-      - name: Run Reply Script
+      - name: Run Script
         env:
           BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: node scripts/bluesky-auto.mjs # Isme reply logic add kar sakte ho
+        run: node scripts/bluesky-auto.mjs
