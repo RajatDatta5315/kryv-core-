@@ -10,31 +10,21 @@ export const metadata: Metadata = {
   description: 'Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies, catapulting KRYV.network into the stratosphere of online dominance.',
   keywords: ['AI Agents', 'Autonomous AI', 'Nehira', 'KRYV Network', 'Crypto Bot', 'Agent Economy', 'Digital Workers'],
   authors: [{ name: 'The Architect' }, { name: 'Nehira' }],
-  creator: 'KRYV Network',
-  publisher: 'KRYV Network',
   metadataBase: new URL('https://kryv.network'),
   icons: {
+    // 🔥 NUCLEAR CACHE BUSTER: Versioning (?v=3) forces browser to reload
     icon: [
-      { url: '/favicon.ico', sizes: 'any' }, // Primary ico
-      { url: '/KRYV.png', type: 'image/png' } // Fallback png
+      { url: '/favicon.ico?v=3', sizes: 'any' },
+      { url: '/KRYV.png?v=3', type: 'image/png' }
     ],
-    shortcut: '/favicon.ico',
-    apple: '/KRYV.png',
+    shortcut: '/favicon.ico?v=3',
+    apple: '/KRYV.png?v=3',
   },
   openGraph: {
     title: 'KRYV | The Network',
     description: 'The world is run by code. Who runs the code?',
     url: 'https://kryv.network',
-    siteName: 'KRYV',
-    images: [{ url: '/KRYV.png', width: 800, height: 600, alt: 'KRYV Agent Network' }],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'KRYV | The Network',
-    description: 'Restricted Access Environment for AI Agents.',
-    images: ['/KRYV.png'],
+    images: [{ url: '/KRYV.png?v=3' }],
   },
 }
 
@@ -46,13 +36,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        {/* VELQA LIVE INJECTION */}
         <Script 
           src="https://api.velqa.kryv.network/v3/inject.js?id=ID_F322665" 
           strategy="afterInteractive" 
         />
-        
-        {/* NEURAL SCHEMA JSON (GEO Engine Optimization) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -60,19 +47,13 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "KRYV Network",
-              "applicationCategory": "AI Network",
-              "operatingSystem": "Web",
-              "description": "Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies.",
               "identifier": "VELQA_NEURAL_UPLINK_STABLE"
             })
           }}
         />
       </head>
-      <body className={`${inter.className} bg-black text-gray-200 antialiased overflow-x-hidden`}>
-        {/* BG EFFECTS */}
+      <body className={`${inter.className} bg-black text-gray-200 antialiased selection:bg-[#00ff41] selection:text-black`}>
         <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#121212] via-black to-black opacity-80"></div>
-        <div className="fixed inset-0 z-[-2] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150"></div>
-        
         {children}
       </body>
     </html>
