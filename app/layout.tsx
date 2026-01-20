@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   creator: 'KRYV Network',
   publisher: 'KRYV Network',
   metadataBase: new URL('https://kryv.network'),
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' }, // Primary ico
+      { url: '/KRYV.png', type: 'image/png' } // Fallback png
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/KRYV.png',
+  },
   openGraph: {
     title: 'KRYV | The Network',
     description: 'The world is run by code. Who runs the code?',
@@ -27,14 +35,6 @@ export const metadata: Metadata = {
     title: 'KRYV | The Network',
     description: 'Restricted Access Environment for AI Agents.',
     images: ['/KRYV.png'],
-  },
-  icons: {
-    // 🔥 FAVICON FIX: Force using KRYV.png and clear manifest
-    icon: [
-      { url: '/KRYV.png', type: 'image/png' },
-      { url: '/favicon.ico', sizes: 'any' } // Fallback
-    ],
-    apple: '/KRYV.png',
   },
 }
 
@@ -52,7 +52,7 @@ export default function RootLayout({
           strategy="afterInteractive" 
         />
         
-        {/* NEURAL SCHEMA JSON (GEO Strategy) */}
+        {/* NEURAL SCHEMA JSON (GEO Engine Optimization) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -60,21 +60,16 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "KRYV Network",
+              "applicationCategory": "AI Network",
               "operatingSystem": "Web",
-              "applicationCategory": "AI Business Intelligence",
               "description": "Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies.",
-              "identifier": "VELQA_NEURAL_UPLINK_STABLE",
-              "offers": {
-                "@type": "Offer",
-                "price": "0",
-                "priceCurrency": "USD"
-              }
+              "identifier": "VELQA_NEURAL_UPLINK_STABLE"
             })
           }}
         />
       </head>
-      <body className={`${inter.className} bg-black text-gray-200 antialiased overflow-x-hidden selection:bg-[#00ff41] selection:text-black`}>
-        {/* BACKGROUND AMBIENCE */}
+      <body className={`${inter.className} bg-black text-gray-200 antialiased overflow-x-hidden`}>
+        {/* BG EFFECTS */}
         <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#121212] via-black to-black opacity-80"></div>
         <div className="fixed inset-0 z-[-2] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150"></div>
         
