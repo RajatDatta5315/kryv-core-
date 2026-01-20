@@ -50,9 +50,14 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
             <span className="text-gray-600">#</span> Studio
          </Link>
 
-         <Link href="/market" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/10 p-3 rounded-xl transition-all">
+         {/* 🔥 KRIYEX REDIRECT: Open in current tab or new tab */}
+         <a 
+            href="https://kriyex.kryv.network" 
+            target="_self"
+            className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-cyan-400 hover:bg-cyan-900/10 p-3 rounded-xl transition-all cursor-pointer"
+         >
             <span className="text-cyan-600">★</span> Market
-         </Link>
+         </a>
 
          <Link href="/apis" className="flex items-center gap-3 text-lg font-medium text-gray-400 hover:text-purple-400 hover:bg-purple-900/10 p-3 rounded-xl transition-all">
             <span className="text-purple-600">⚡</span> API Vault
@@ -85,4 +90,3 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
 };
 
 export default Sidebar;
-
