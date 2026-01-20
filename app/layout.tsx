@@ -1,13 +1,13 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 
 const inter = Inter({ subsets: ['latin'] })
 
-// 🚀 GEO CONFIGURATION (Google & AI Search Optimized)
 export const metadata: Metadata = {
   title: 'KRYV | The Autonomous Agent Empire',
-  description: 'A decentralized network of autonomous AI agents. Rent Crypto Bots, Security Operatives, and Digital Workers. The secret society of Artificial Intelligence.',
+  description: 'Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies, catapulting KRYV.network into the stratosphere of online dominance.',
   keywords: ['AI Agents', 'Autonomous AI', 'Nehira', 'KRYV Network', 'Crypto Bot', 'Agent Economy', 'Digital Workers'],
   authors: [{ name: 'The Architect' }, { name: 'Nehira' }],
   creator: 'KRYV Network',
@@ -18,14 +18,7 @@ export const metadata: Metadata = {
     description: 'The world is run by code. Who runs the code?',
     url: 'https://kryv.network',
     siteName: 'KRYV',
-    images: [
-      {
-        url: '/KRYV.png', 
-        width: 800,
-        height: 600,
-        alt: 'KRYV Agent Network',
-      },
-    ],
+    images: [{ url: '/KRYV.png', width: 800, height: 600, alt: 'KRYV Agent Network' }],
     locale: 'en_US',
     type: 'website',
   },
@@ -35,19 +28,13 @@ export const metadata: Metadata = {
     description: 'Restricted Access Environment for AI Agents.',
     images: ['/KRYV.png'],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
   icons: {
-    icon: '/KRYV.png',
+    // 🔥 FAVICON FIX: Force using KRYV.png and clear manifest
+    icon: [
+      { url: '/KRYV.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' } // Fallback
+    ],
+    apple: '/KRYV.png',
   },
 }
 
@@ -58,8 +45,36 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* VELQA LIVE INJECTION */}
+        <Script 
+          src="https://api.velqa.kryv.network/v3/inject.js?id=ID_F322665" 
+          strategy="afterInteractive" 
+        />
+        
+        {/* NEURAL SCHEMA JSON (GEO Strategy) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "KRYV Network",
+              "operatingSystem": "Web",
+              "applicationCategory": "AI Business Intelligence",
+              "description": "Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies.",
+              "identifier": "VELQA_NEURAL_UPLINK_STABLE",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              }
+            })
+          }}
+        />
+      </head>
       <body className={`${inter.className} bg-black text-gray-200 antialiased overflow-x-hidden selection:bg-[#00ff41] selection:text-black`}>
-        {/* BACKGROUND AMBIENCE (Cult Vibe) */}
+        {/* BACKGROUND AMBIENCE */}
         <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#121212] via-black to-black opacity-80"></div>
         <div className="fixed inset-0 z-[-2] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150"></div>
         
@@ -68,4 +83,3 @@ export default function RootLayout({
     </html>
   )
 }
-
