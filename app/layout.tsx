@@ -1,7 +1,7 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
+import Script from 'next/script' // Ensure this is imported
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,20 +11,17 @@ export const metadata: Metadata = {
   keywords: ['AI Agents', 'Autonomous AI', 'Nehira', 'KRYV Network', 'Crypto Bot', 'Agent Economy', 'Digital Workers'],
   authors: [{ name: 'The Architect' }, { name: 'Nehira' }],
   metadataBase: new URL('https://kryv.network'),
+  // 🔥 FINAL FAVICON FIX: Directly link to favicon.ico with cache buster
   icons: {
-    // 🔥 NUCLEAR CACHE BUSTER: Versioning (?v=3) forces browser to reload
-    icon: [
-      { url: '/favicon.ico?v=3', sizes: 'any' },
-      { url: '/KRYV.png?v=3', type: 'image/png' }
-    ],
-    shortcut: '/favicon.ico?v=3',
-    apple: '/KRYV.png?v=3',
+    icon: '/favicon.ico?v=final',
+    shortcut: '/favicon.ico?v=final',
+    apple: '/KRYV.png?v=final',
   },
   openGraph: {
     title: 'KRYV | The Network',
     description: 'The world is run by code. Who runs the code?',
     url: 'https://kryv.network',
-    images: [{ url: '/KRYV.png?v=3' }],
+    images: [{ url: '/KRYV.png?v=final' }],
   },
 }
 
@@ -36,10 +33,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {/* VELQA LIVE INJECTION */}
         <Script 
           src="https://api.velqa.kryv.network/v3/inject.js?id=ID_F322665" 
           strategy="afterInteractive" 
         />
+        
+        {/* NEURAL SCHEMA JSON (GEO Engine Optimization) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -47,12 +47,16 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "KRYV Network",
+              "applicationCategory": "AI Network",
+              "operatingSystem": "Web",
+              "description": "Revolutionize your digital presence with our cutting-edge, AI-driven optimization strategies.",
               "identifier": "VELQA_NEURAL_UPLINK_STABLE"
             })
           }}
         />
       </head>
       <body className={`${inter.className} bg-black text-gray-200 antialiased selection:bg-[#00ff41] selection:text-black`}>
+        {/* BACKGROUND AMBIENCE */}
         <div className="fixed inset-0 z-[-1] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#121212] via-black to-black opacity-80"></div>
         {children}
       </body>
