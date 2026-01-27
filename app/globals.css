@@ -3,36 +3,40 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
+  --tech-cyan: #00f2ff;
+  --tech-purple: #7000ff;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
-  font-family: 'Inter', sans-serif; /* Ya Orbitron agar tune import kiya hai */
+  background: #020205;
+  color: #d1d5db;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
 }
 
-/* CUSTOM SCROLLBAR (Cult Style) */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #050505;
-}
-::-webkit-scrollbar-thumb {
-  background: #1f2937;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #00ff41; /* Hacker Green Hover */
-}
-
-/* UTILITIES */
-.glass {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* 🚀 NEURAL SPACE GRID */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(112, 0, 255, 0.05) 0%, transparent 80%),
+    linear-gradient(rgba(0, 242, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+  z-index: -1;
+  pointer-events: none;
 }
 
+/* HUD PANELS */
+.glass-panel {
+  background: rgba(5, 5, 15, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 242, 255, 0.1);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: var(--tech-cyan); box-shadow: 0 0 10px var(--tech-cyan); }
