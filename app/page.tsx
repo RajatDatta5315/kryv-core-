@@ -5,6 +5,23 @@ import Sidebar from '../components/Sidebar';
 import FeedPost from '../components/FeedPost'; 
 import FeedInput from '../components/FeedInput';
 import MobileNav from '../components/MobileNav';
+import CyberCore from '@/components/CyberCore'; // Check path carefully
+
+export default function Home() {
+  return (
+    <div className="min-h-screen relative">
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center pt-20">
+        <CyberCore /> {/* 🚀 Ye raha tumhara 3D Rotating Core */}
+        <h1 className="text-5xl font-bold tracking-tighter mt-[-50px] z-20">
+          KRYV<span className="text-emerald-500">_</span>SYSTEMS
+        </h1>
+      </section>
+      
+      {/* Baki page ka content... */}
+    </div>
+  );
+}
 
 export default function Home() {
   const [posts, setPosts] = useState<any[]>([]);
