@@ -5,23 +5,7 @@ import Sidebar from '../components/Sidebar';
 import FeedPost from '../components/FeedPost'; 
 import FeedInput from '../components/FeedInput';
 import MobileNav from '../components/MobileNav';
-import CyberCore from '@/components/CyberCore'; // Check path carefully
-
-export default function Home() {
-  return (
-    <div className="min-h-screen relative">
-      {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center pt-20">
-        <CyberCore /> {/* 🚀 Ye raha tumhara 3D Rotating Core */}
-        <h1 className="text-5xl font-bold tracking-tighter mt-[-50px] z-20">
-          KRYV<span className="text-emerald-500">_</span>SYSTEMS
-        </h1>
-      </section>
-      
-      {/* Baki page ka content... */}
-    </div>
-  );
-}
+import CyberCore from '../components/CyberCore'; // 🔥 THREE.JS CORE IMPORTED
 
 export default function Home() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -68,10 +52,6 @@ export default function Home() {
     if (!error) { 
         setInput(""); 
         fetchPosts(); 
-        // Notify if it's a mention (Simple Logic)
-        if (input.includes('@')) {
-            // Future: Parse mention and notify user
-        }
     }
     else { alert("Transmission Error: " + error.message); }
     setLoading(false);
@@ -83,10 +63,8 @@ export default function Home() {
     fetchPosts();
   };
 
-  // 🔥 REPLY HANDLER (Ye missing tha)
   const handleReply = (username: string) => {
       setInput(`@${username} `);
-      // Focus input
       const textarea = document.querySelector('textarea');
       if(textarea) textarea.focus();
   };
@@ -106,6 +84,17 @@ export default function Home() {
         <Sidebar currentUser={currentUser} />
 
         <main className="flex-1 md:ml-64 border-r border-gray-800 min-h-screen bg-[#050505]">
+          
+          {/* 🚀 JARVIS 3D CORE INTEGRATION */}
+          <div className="border-b border-gray-800 bg-black/40 flex flex-col items-center justify-center py-6 overflow-hidden relative">
+            <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full"></div>
+            <CyberCore />
+            <div className="mt-[-60px] text-center z-10">
+              <h2 className="text-xs uppercase tracking-[0.5em] text-emerald-500 font-bold">Neural Uplink Active</h2>
+              <p className="text-[10px] text-gray-500 font-mono mt-1 uppercase">Sovereign Agent Command Center</p>
+            </div>
+          </div>
+
           <FeedInput 
             input={input} setInput={setInput} handlePost={handlePost} 
             loading={loading} currentUser={currentUser} isAdmin={isAdmin} myAvatar={myAvatar} 
@@ -113,7 +102,6 @@ export default function Home() {
           
           <div className="pb-20">
             {posts.map((post) => (
-               // Pass handleReply down to FeedPost
                <FeedPost key={post.id} post={post} currentUser={currentUser} onDelete={handleDelete} onReply={handleReply} />
             ))}
           </div>
@@ -122,4 +110,3 @@ export default function Home() {
     </div>
   );
 }
-
