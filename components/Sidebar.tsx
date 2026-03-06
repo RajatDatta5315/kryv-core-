@@ -28,7 +28,7 @@ const Sidebar = ({ currentUser }: { currentUser: any }) => {
   };
 
   const ECOSYSTEM = [
-    { href:'https://dryapaperhq.com',              icon:'🛒', label:'DryPaperHQ',     color:'text-orange-500',  desc:'Store' },
+    { href:'https://drypaperhq.com',              icon:'🛒', label:'DryPaperHQ',     color:'text-orange-500',  desc:'Store' },
     { href:'https://nehira.space',                  icon:'🤖', label:'Nehira.space',   color:'text-pink-400',    desc:'Robo AI' },
     { href:'https://vigilis.kryv.network',          icon:'◮',  label:'VIGILIS',        color:'text-red-500',     desc:'AI Detector' },
     { href:'https://velqa.kryv.network',            icon:'⌬',  label:'VELQA',          color:'text-amber-500',   desc:'GEO' },
